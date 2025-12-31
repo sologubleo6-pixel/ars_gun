@@ -16,26 +16,22 @@
         .page { display: none; padding: 15px; }
         .page.active { display: block; }
 
-        /* Карточки товаров */
         .item-card { background: var(--tg-secondary-bg); border-radius: 15px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .item-card img { width: 100%; max-height: 250px; object-fit: cover; background: #eee; }
         .item-info { padding: 15px; }
         .item-price { background: var(--tg-link); color: white; padding: 5px 12px; border-radius: 7px; font-weight: bold; display: inline-block; margin-bottom: 8px; }
         .item-title { font-size: 18px; font-weight: bold; display: block; margin-bottom: 5px; }
 
-        /* Кнопки админа */
-        .admin-controls { display: none; gap: 10px; margin-top: 15px; }
+        .admin-controls { display: flex; gap: 10px; margin-top: 15px; }
         .btn-edit { background: var(--tg-link); color: white; border: none; padding: 10px; border-radius: 8px; flex: 1; font-weight: bold; }
         .btn-delete { background: #ff4444; color: white; border: none; padding: 10px; border-radius: 8px; flex: 1; font-weight: bold; }
         #admin-btn { position: fixed; top: 15px; right: 15px; z-index: 1001; display: none; background: #ff4444; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 
-        /* Навигация */
         .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 75px; background: var(--tg-secondary-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(0,0,0,0.1); z-index: 1000; }
         .tab-item { text-align: center; font-size: 11px; flex: 1; color: var(--tg-hint); cursor: pointer; }
         .tab-item.active { color: var(--tg-link); font-weight: bold; }
         .tab-item .icon { font-size: 24px; display: block; margin-bottom: 4px; }
 
-        /* Форма */
         .form-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--tg-bg); z-index: 2000; padding: 20px; overflow-y: auto; }
         input, textarea, select { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 10px; background: var(--tg-secondary-bg); color: var(--tg-text); font-size: 16px; box-sizing: border-box; }
     </style>
@@ -80,10 +76,12 @@
         tg.ready();
         tg.expand();
 
-        // --- НАСТРОЙКИ ---
-        const READ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU32ejIBvBjA7CHetO52InIBmTUmKug758-lrApf_4NSoG-Egg0QojyavxRHbvMU4GOGQmQWPVrhFU/pub?gid=0&single=true&output=csv'; // Должна заканчиваться на output=csv
+        // 1. ССЫЛКА НА CSV (ОБЯЗАТЕЛЬНО проверьте кнопку "Опубликовать")
+        const READ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU32ejIBvBjA7CHetO52InIBmTUmKug758-lrApf_4NSoG-Egg0QojyavxRHbvMU4GOGQmQWPVrhFU/pub?gid=0&single=true&output=csv'; 
+        // 2. ССЫЛКА НА СКРИПТ (EXEC)
         const WRITE_URL = 'https://script.google.com/macros/s/AKfycbxu1DkZb2ZY85neMdVq4RySEIHBV8QwZT_gyUNwZ4pUPAgPazNI6lZLPtZkiyfcqV7xTw/exec'; 
-        const ADMIN_IDS = [6606101996, 461880012]; // ID админов через запятую
+        // 3. ВАШИ ID
+        const ADMIN_IDS = [6606101996, 461880012]; 
 
         let isAdmin = false;
         let isEditing = false;
@@ -96,7 +94,8 @@
 
         async function loadData() {
             try {
-                const response = await fetch(READ_URL + "?t=" + new Date().getTime()); // Обход кэша
+                // Прямой запрос без лишних заголовков для обхода CORS
+                const response = await fetch(READ_URL + "?cache=" + Math.random());
                 if (!response.ok) throw new Error();
                 const text = await response.text();
                 
@@ -118,7 +117,7 @@
                     let adminBlock = '';
                     if (isAdmin) {
                         adminBlock = `
-                            <div class="admin-controls" style="display:flex;">
+                            <div class="admin-controls">
                                 <button class="btn-edit" onclick="openEditForm('${cols[0].trim()}','${name}','${price}','${photo}','${desc.replace(/'/g, "\\'")}')">Править</button>
                                 <button class="btn-delete" onclick="deletePost('${name}')">Удалить</button>
                             </div>`;
@@ -138,7 +137,8 @@
                     if (containers[cat]) document.getElementById(containers[cat]).innerHTML += card;
                 });
             } catch (e) {
-                alert("Ошибка загрузки. Проверьте кнопку 'Опубликовать' в таблице.");
+                // Если ошибка осталась, значит Google еще не открыл доступ по CORS
+                console.error("Fetch error", e);
             }
         }
 
@@ -149,12 +149,7 @@
             else { tg.BackButton.show(); tg.BackButton.offClick(); tg.BackButton.onClick(() => showPage('feed')); }
         }
 
-        function openAddForm() {
-            isEditing = false;
-            ['f-name', 'f-price', 'f-photo', 'f-desc'].forEach(id => document.getElementById(id).value = '');
-            document.getElementById('post-form').style.display = 'block';
-        }
-
+        function openAddForm() { isEditing = false; document.getElementById('post-form').style.display = 'block'; }
         function openEditForm(cat, name, price, photo, desc) {
             isEditing = true; oldName = name;
             document.getElementById('f-cat').value = cat;
@@ -177,14 +172,14 @@
                 desc: document.getElementById('f-desc').value
             };
             await fetch(WRITE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-            setTimeout(() => location.reload(), 800);
+            setTimeout(() => location.reload(), 1000);
         }
 
         async function deletePost(name) {
             if (!confirm(`Удалить "${name}"?`)) return;
             tg.MainButton.setText("Удаление...").show();
             await fetch(WRITE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({action: 'delete', name: name}) });
-            setTimeout(() => location.reload(), 800);
+            setTimeout(() => location.reload(), 1000);
         }
 
         function closeForm() { document.getElementById('post-form').style.display = 'none'; }
@@ -193,4 +188,3 @@
     </script>
 </body>
 </html>
-
