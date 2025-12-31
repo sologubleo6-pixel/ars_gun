@@ -1,126 +1,160 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-body { margin:0; font-family:sans-serif; background: linear-gradient(135deg,#f9f9f9,#e0e0ff); color:#333; padding-bottom:100px;}
-.page{display:none;padding:15px;}
-.page.active{display:block;}
-.item-card{background:rgba(255,255,255,0.9);border-radius:20px;margin-bottom:20px;box-shadow:0 6px 15px rgba(0,0,0,0.1);transition:transform 0.2s;}
-.item-card:hover{transform:translateY(-3px);}
-.item-card img{width:100%;max-height:250px;object-fit:cover;border-radius:15px;}
-.item-info{padding:15px;}
-.item-price{background:#248bed;color:white;padding:5px 12px;border-radius:7px;font-weight:bold;display:inline-block;margin-bottom:8px;}
-.item-title{font-size:18px;font-weight:bold;margin-bottom:5px;}
-.item-date{font-size:12px;color:#666;margin-bottom:5px;}
-#admin-btn{position:fixed;top:15px;right:15px;z-index:1001;display:none;background:#ff4444;color:white;border:none;border-radius:50%;width:50px;height:50px;font-size:28px;box-shadow:0 4px 12px rgba(0,0,0,0.3);}
-.form-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.95);z-index:2000;padding:20px;overflow-y:auto;}
-input, textarea, select{width:100%;padding:12px;margin-bottom:10px;border:1px solid #ddd;border-radius:10px;background:#f0f0f0;color:#333;font-size:16px;box-sizing:border-box;}
+:root { 
+    --tg-bg: #f6f8ff; 
+    --tg-text: #000; 
+    --tg-link: #248bed; 
+    --tg-secondary-bg: #ffffff; 
+    --tg-hint: #888;
+}
+body { font-family: sans-serif; background: linear-gradient(135deg,#f6f8ff,#e6ebff); color: var(--tg-text); margin: 0; padding-bottom: 100px; }
+.page { display: none; padding: 15px; }
+.page.active { display: block; }
+.item-card { background: var(--tg-secondary-bg); border-radius: 15px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+.item-card img { width: 100%; max-height: 250px; object-fit: cover; background: #eee; }
+.item-info { padding: 15px; }
+.item-price { background: var(--tg-link); color: white; padding: 5px 12px; border-radius: 7px; font-weight: bold; display: inline-block; margin-bottom: 8px; }
+.item-title { font-size: 18px; font-weight: bold; display: block; margin-bottom: 5px; }
+.item-date { font-size: 12px; color: var(--tg-hint); margin-bottom: 5px; }
+.item-desc { font-size: 14px; white-space: pre-wrap; }
+
+.admin-controls { display: flex; gap: 10px; margin-top: 15px; }
+.btn-edit { background: var(--tg-link); color: white; border: none; padding: 10px; border-radius: 8px; flex: 1; font-weight: bold; }
+.btn-delete { background: #ff4444; color: white; border: none; padding: 10px; border-radius: 8px; flex: 1; font-weight: bold; }
+
+#admin-btn { position: fixed; top: 15px; right: 15px; z-index: 1001; display: none; background: #ff4444; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+
+.tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 75px; background: var(--tg-secondary-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(0,0,0,0.1); z-index: 1000; }
+.tab-item { text-align: center; font-size: 11px; flex: 1; color: var(--tg-hint); cursor: pointer; }
+.tab-item.active { color: var(--tg-link); font-weight: bold; }
+.tab-item .icon { font-size: 24px; display: block; margin-bottom: 4px; }
+
+.form-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--tg-bg); z-index: 2000; padding: 20px; overflow-y: auto; }
+input, textarea, select { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 10px; background: var(--tg-secondary-bg); color: var(--tg-text); font-size: 16px; box-sizing: border-box; }
 </style>
 </head>
 <body>
 
 <button id="admin-btn" onclick="openAddForm()">+</button>
 
+<!-- Страницы -->
 <div id="feed" class="page active"><h2>🔥 Лента</h2><div id="feed-list"></div></div>
+<div id="powder" class="page"><h2>🧪 Порох</h2><div id="powder-list"></div></div>
+<div id="ammo" class="page"><h2>🔫 Патроны</h2><div id="ammo-list"></div></div>
+<div id="guns" class="page"><h2>🧰 Оружие</h2><div id="guns-list"></div></div>
+<div id="commission" class="page"><h2>♻️ Комиссионка</h2><div id="comm-list"></div></div>
 
+<!-- Форма -->
 <div id="post-form" class="form-overlay">
-<h3 id="form-title">Новый пост</h3>
-<select id="f-cat">
-    <option value="Новости">Новости</option>
-    <option value="Порох">Порох</option>
-    <option value="Патроны">Патроны</option>
-    <option value="Оружие">Оружие</option>
-    <option value="Комиссионка">Комиссионка</option>
-</select>
-<input type="text" id="f-name" placeholder="Название">
-<input type="text" id="f-price" placeholder="Цена">
-<input type="file" id="photo-upload">
-<input type="hidden" id="f-photo">
-<textarea id="f-desc" rows="4" placeholder="Описание"></textarea>
-<button onclick="submitData()" style="width:100%; background:#248bed;color:white;padding:15px;border:none;border-radius:10px;font-weight:bold;">СОХРАНИТЬ</button>
-<button onclick="closeForm()" style="width:100%;margin-top:10px;background:none;border:none;color:#666;">Отмена</button>
+    <h3 id="form-title">Новый пост</h3>
+    <select id="f-cat">
+        <option value="Новости">Новости</option>
+        <option value="Порох">Порох</option>
+        <option value="Патроны">Патроны</option>
+        <option value="Оружие">Оружие</option>
+        <option value="Комиссионка">Комиссионка</option>
+    </select>
+    <input type="text" id="f-name" placeholder="Название">
+    <input type="text" id="f-price" placeholder="Цена">
+    <input type="file" id="f-photo-file" accept="image/*">
+    <textarea id="f-desc" rows="4" placeholder="Описание"></textarea>
+    <button onclick="submitData()" style="width:100%; background:var(--tg-link); color:white; padding:15px; border:none; border-radius:10px; font-weight:bold;">СОХРАНИТЬ</button>
+    <button onclick="closeForm()" style="width:100%; margin-top:10px; background:none; border:none; color:var(--tg-hint);">Отмена</button>
+</div>
+
+<!-- Табы -->
+<div class="tab-bar">
+    <div class="tab-item active" onclick="showPage('feed',this)"><span class="icon">🏠</span>Лента</div>
+    <div class="tab-item" onclick="showPage('powder',this)"><span class="icon">🧪</span>Порох</div>
+    <div class="tab-item" onclick="showPage('ammo',this)"><span class="icon">🔫</span>Патроны</div>
+    <div class="tab-item" onclick="showPage('guns',this)"><span class="icon">🧰</span>Оружие</div>
+    <div class="tab-item" onclick="showPage('commission',this)"><span class="icon">♻️</span>Комисс.</div>
 </div>
 
 <script>
 const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
-const READ_URL = 'https://script.google.com/macros/s/AKfycbyzegRFM-_JaaApisZvGNhPO6SYqXg1yL-1jyDSNoD_wapdYzpu7N4sJDsDU7bueQ2rNg/exec';
-const WRITE_URL = 'https://script.google.com/macros/s/AKfycbyzegRFM-_JaaApisZvGNhPO6SYqXg1yL-1jyDSNoD_wapdYzpu7N4sJDsDU7bueQ2rNg/exec';
-const ADMIN_IDS = [6606101996,461880012];
 
-let isAdmin = false;
-let isEditing = false;
-let oldName = "";
+// Ссылки на Apps Script
+const READ_URL = 'https://script.google.com/macros/s/AKfycbxEGDonE5hBx86cySoCV0BSYrOrPz0e8XuVoMGh-fMLGaA5Z_m_kaMh2U-x5szeizRjGA/exec';
+const WRITE_URL = 'https://script.google.com/macros/s/AKfycbxEGDonE5hBx86cySoCV0BSYrOrPz0e8XuVoMGh-fMLGaA5Z_m_kaMh2U-x5szeizRjGA/exec';
 
-if (tg.initDataUnsafe.user && ADMIN_IDS.includes(tg.initDataUnsafe.user.id)){
+// Админы
+const ADMIN_IDS = [6606101996,461880012]; // <- твой ID
+let isAdmin = false, isEditing=false, oldName='';
+
+if(tg.initDataUnsafe.user && ADMIN_IDS.includes(tg.initDataUnsafe.user.id)){
     isAdmin = true;
     document.getElementById('admin-btn').style.display='block';
 }
 
-function escapeHtml(text){ const div=document.createElement('div'); div.textContent=text; return div.innerHTML;}
-
 async function loadData(){
-    const res = await fetch(READ_URL+"?cache="+Math.random());
-    const posts = await res.json();
-    const container = document.getElementById('feed-list');
-    container.innerHTML='';
-    posts.forEach(post=>{
-        const card = document.createElement('div');
-        card.className='item-card';
-        card.innerHTML = `
-            ${post.photo?`<img src="${post.photo}">`:''}
-            <div class="item-info">
-                <span class="item-price">${escapeHtml(post.price)}</span>
-                <span class="item-title">${escapeHtml(post.name)}</span>
-                <p class="item-date">Дата: ${new Date(post.date).toLocaleString()}</p>
-                <p>${escapeHtml(post.desc)}</p>
+    const res = await fetch(READ_URL+"?cache="+Date.now());
+    const rows = await res.json();
+    const containers = {'новости':'feed-list','порох':'powder-list','патроны':'ammo-list','оружие':'guns-list','комиссионка':'comm-list'};
+
+    Object.values(containers).forEach(id=>document.getElementById(id).innerHTML='');
+    rows.reverse().forEach(r=>{
+        const [cat,name,price,photo,desc,date] = r;
+        let adminBlock='';
+        if(isAdmin){
+            adminBlock = `<div class="admin-controls">
+                <button class="btn-edit" onclick="openEditForm('${cat}','${name}','${price}','${photo}','${desc.replace(/'/g,"\\'")}')">Править</button>
+                <button class="btn-delete" onclick="deletePost('${name}')">Удалить</button>
             </div>`;
-        container.appendChild(card);
+        }
+        const card = `<div class="item-card">
+            ${photo?`<img src="${photo}">`:''}
+            <div class="item-info">
+                ${price?`<span class="item-price">${price} ₽</span>`:''}
+                <span class="item-title">${name}</span>
+                <p class="item-desc">${desc}</p>
+                <div class="item-date">📅 ${new Date(date).toLocaleDateString()}</div>
+                ${adminBlock}
+            </div>
+        </div>`;
+        if(containers[cat.toLowerCase()]) document.getElementById(containers[cat.toLowerCase()]).innerHTML += card;
     });
 }
 
-function openAddForm(){
-    isEditing=false;
-    document.getElementById('f-cat').value='Новости';
-    document.getElementById('f-name').value='';
-    document.getElementById('f-price').value='';
-    document.getElementById('f-photo').value='';
-    document.getElementById('f-desc').value='';
-    document.getElementById('post-form').style.display='block';
+function showPage(id,el){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
+    el.classList.add('active');
 }
 
-function closeForm(){ document.getElementById('post-form').style.display='none'; }
+function openAddForm(){ isEditing=false; post-form.style.display='block'; }
+function openEditForm(cat,name,price,photo,desc){
+    isEditing=true; oldName=name;
+    f-cat.value=cat; f-name.value=name; f-price.value=price; f-desc.value=desc;
+    post-form.style.display='block';
+}
 
-document.getElementById('photo-upload').addEventListener('change', async (e)=>{
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async function(evt){
-        const base64 = evt.target.result.split(',')[1];
-        const payload = { action:'upload', fileBase64: base64, fileName:file.name, fileType:file.type };
-        const res = await fetch(WRITE_URL, {method:'POST', body: JSON.stringify(payload)});
-        const data = await res.json();
-        document.getElementById('f-photo').value = data.url;
-    };
-    reader.readAsDataURL(file);
-});
+function closeForm(){ post-form.style.display='none'; }
 
 async function submitData(){
-    const data = {
-        action: 'add',
-        category: document.getElementById('f-cat').value,
-        name: document.getElementById('f-name').value,
-        price: document.getElementById('f-price').value,
-        photo: document.getElementById('f-photo').value,
-        desc: document.getElementById('f-desc').value
-    };
-    await fetch(WRITE_URL,{method:'POST',body: JSON.stringify(data)});
+    let base64='',type='';
+    const file = f-photo-file.files[0];
+    if(file){type=file.type;base64=await toBase64(file);}
+    const data = {action:isEditing?'edit':'add',oldName,category:f-cat.value,name:f-name.value,price:f-price.value,desc:f-desc.value,photoBase64:base64,photoType:type};
+    await fetch(WRITE_URL,{method:'POST',body:JSON.stringify(data)});
     location.reload();
 }
+
+async function deletePost(name){
+    if(!confirm(`Удалить "${name}"?`)) return;
+    await fetch(WRITE_URL,{method:'POST',body:JSON.stringify({action:'delete',name})});
+    location.reload();
+}
+
+function toBase64(file){return new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result.split(',')[1]);fr.readAsDataURL(file);});}
 
 loadData();
 </script>
