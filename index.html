@@ -5,83 +5,108 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --tg-bg: var(--tg-theme-bg-color, #ffffff);
-            --tg-text: var(--tg-theme-text-color, #000000);
-            --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            --tg-link: var(--tg-theme-link-color, #248bed);
-            --tg-hint: var(--tg-theme-hint-color, #999999);
-        }
-        body { font-family: sans-serif; background-color: var(--tg-bg); color: var(--tg-text); margin: 0; padding-bottom: 80px; }
+        :root { --tg-bg: var(--tg-theme-bg-color, #ffffff); --tg-text: var(--tg-theme-text-color, #000000); --tg-link: var(--tg-theme-link-color, #248bed); --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #f0f0f0); }
+        body { font-family: sans-serif; background: var(--tg-bg); color: var(--tg-text); margin: 0; padding-bottom: 80px; }
         .page { display: none; padding: 15px; }
         .page.active { display: block; }
-        .item-card { background: var(--tg-secondary-bg); border-radius: 12px; margin-bottom: 12px; padding: 12px; display: flex; gap: 15px; align-items: center; }
-        .item-card img { width: 80px; height: 80px; border-radius: 10px; object-fit: cover; }
-        .item-info { flex: 1; }
-        .item-price { color: var(--tg-link); font-weight: bold; }
+        
+        /* Стиль поста */
+        .item-card { background: var(--tg-secondary-bg); border-radius: 15px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .item-card img { width: 100%; max-height: 250px; object-fit: cover; }
+        .item-info { padding: 15px; }
+        .item-price { background: var(--tg-link); color: white; padding: 4px 12px; border-radius: 6px; font-weight: bold; display: inline-block; margin-bottom: 8px; }
+
+        /* Админ-панель */
+        #admin-btn { position: fixed; top: 10px; right: 10px; z-index: 100; display: none; background: #ff4444; color: white; border: none; padding: 8px; border-radius: 50%; width: 40px; height: 40px; font-weight: bold; }
+        .form-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--tg-bg); z-index: 1000; padding: 20px; overflow-y: auto; }
+        input, textarea, select { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; background: var(--tg-secondary-bg); color: var(--tg-text); }
+
         .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: var(--tg-secondary-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(0,0,0,0.1); }
-        .tab-item { text-align: center; font-size: 11px; color: var(--tg-hint); flex: 1; }
-        .icon { font-size: 22px; display: block; }
+        .tab-item { text-align: center; font-size: 10px; flex: 1; cursor: pointer; color: var(--tg-theme-hint-color); }
+        .tab-item.active { color: var(--tg-link); }
     </style>
 </head>
 <body>
 
-    <div id="feed" class="page active"><h2>Главная лента</h2><p>Добро пожаловать в наш магазин!</p></div>
+    <button id="admin-btn" onclick="document.getElementById('post-form').style.display='block'">+</button>
+
+    <div id="feed" class="page active"><h2>Главная</h2><div id="feed-list"></div></div>
     <div id="powder" class="page"><h2>🧪 Порох</h2><div id="powder-list"></div></div>
     <div id="ammo" class="page"><h2>🔫 Патроны</h2><div id="ammo-list"></div></div>
     <div id="guns" class="page"><h2>🧰 Оружие</h2><div id="guns-list"></div></div>
     <div id="commission" class="page"><h2>♻️ Комиссионка</h2><div id="comm-list"></div></div>
 
+    <div id="post-form" class="form-overlay">
+        <h3>Новый товар/пост</h3>
+        <select id="f-cat">
+            <option value="Порох">Порох</option>
+            <option value="Патроны">Патроны</option>
+            <option value="Оружие">Оружие</option>
+            <option value="Комиссионка">Комиссионка</option>
+        </select>
+        <input type="text" id="f-name" placeholder="Название">
+        <input type="text" id="f-price" placeholder="Цена (только цифры)">
+        <input type="text" id="f-photo" placeholder="Ссылка на фото (URL)">
+        <textarea id="f-desc" placeholder="Описание"></textarea>
+        <button onclick="publishPost()" style="width:100%; background:var(--tg-link); color:white; padding:15px; border:none; border-radius:8px;">Опубликовать</button>
+        <button onclick="document.getElementById('post-form').style.display='none'" style="width:100%; margin-top:10px; background:none; border:none; color:var(--tg-link);">Отмена</button>
+    </div>
+
     <div class="tab-bar">
-        <div class="tab-item" onclick="showPage('powder')"><span class="icon">🧪</span>Порох</div>
-        <div class="tab-item" onclick="showPage('ammo')"><span class="icon">🔫</span>Патроны</div>
-        <div class="tab-item" onclick="showPage('guns')"><span class="icon">🧰</span>Оружие</div>
-        <div class="tab-item" onclick="showPage('commission')"><span class="icon">♻️</span>Комисс.</div>
+        <div class="tab-item" onclick="showPage('powder')"><span>🧪</span><br>Порох</div>
+        <div class="tab-item" onclick="showPage('ammo')"><span>🔫</span><br>Патроны</div>
+        <div class="tab-item" onclick="showPage('guns')"><span>🧰</span><br>Оружие</div>
+        <div class="tab-item" onclick="showPage('commission')"><span>♻️</span><br>Комисс.</div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
 
-        // СЮДА ВСТАВЬ СВОЮ ССЫЛКУ CSV (ВЕСЬ ДОКУМЕНТ)
-        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU32ejIBvBjA7CHetO52InIBmTUmKug758-lrApf_4NSoG-Egg0QojyavxRHbvMU4GOGQmQWPVrhFU/pub?gid=0&single=true&output=csv';
+        const READ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU32ejIBvBjA7CHetO52InIBmTUmKug758-lrApf_4NSoG-Egg0QojyavxRHbvMU4GOGQmQWPVrhFU/pub?output=csv'; // CSV ссылка
+        const WRITE_URL = 'https://script.google.com/macros/s/AKfycbymWSjpYKU-zr0jNyVqwoYaj_Wq0Ffh_0rnQVw8FdEPlV3_aVPlJppTRnR3WyKPakyiKQ/exec'; // URL из Apps Script (/exec)
+
+        // Показывать кнопку "+" только тебе (впиши свой ID или оставь так для теста всех)
+        const ADMIN_ID = 461880012; // Узнай свой ID через @userinfobot
+        if (tg.initDataUnsafe.user) {
+            document.getElementById('admin-btn').style.display = 'block';
+        }
 
         async function loadData() {
-            const response = await fetch(SHEET_URL);
-            const text = await response.text();
+            const resp = await fetch(READ_URL);
+            const text = await resp.text();
             const rows = text.split('\n').slice(1);
+            const lists = {'Порох': 'powder-list', 'Патроны': 'ammo-list', 'Оружие': 'guns-list', 'Комиссионка': 'comm-list'};
             
-            const lists = {
-                'Порох': document.getElementById('powder-list'),
-                'Патроны': document.getElementById('ammo-list'),
-                'Оружие': document.getElementById('guns-list'),
-                'Комиссионка': document.getElementById('comm-list')
-            };
-
             rows.forEach(row => {
                 const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                 if (cols.length < 3) return;
                 const [cat, name, price, photo, desc] = cols.map(c => c.replace(/"/g, '').trim());
-
-                const card = `
-                    <div class="item-card">
-                        <img src="${photo || 'https://via.placeholder.com/80'}">
-                        <div class="item-info">
-                            <b>${name}</b><br>
-                            <span class="item-price">${price} ₽</span><br>
-                            <small style="color:var(--tg-hint)">${desc || ''}</small>
-                        </div>
-                    </div>
-                `;
-                if (lists[cat]) lists[cat].innerHTML += card;
+                const card = `<div class="item-card"><img src="${photo || 'https://via.placeholder.com/400x200'}"><div class="item-info"><span class="item-price">${price} ₽</span><br><b style="font-size:18px">${name}</b><p>${desc}</p></div></div>`;
+                if (lists[cat]) document.getElementById(lists[cat]).innerHTML += card;
             });
         }
 
-        function showPage(pageId) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            if (pageId === 'feed') tg.BackButton.hide();
-            else { tg.BackButton.show(); tg.BackButton.onClick(() => showPage('feed')); }
+        async function publishPost() {
+            const data = {
+                category: document.getElementById('f-cat').value,
+                name: document.getElementById('f-name').value,
+                price: document.getElementById('f-price').value,
+                photo: document.getElementById('f-photo').value,
+                desc: document.getElementById('f-desc').value
+            };
+            tg.MainButton.setText("Публикация...").show();
+            await fetch(WRITE_URL, { method: 'POST', body: JSON.stringify(data) });
+            tg.MainButton.hide();
+            alert("Готово! Пост появится через пару минут.");
+            location.reload();
+        }
+
+        function showPage(p) {
+            document.querySelectorAll('.page').forEach(div => div.classList.remove('active'));
+            document.getElementById(p).classList.add('active');
+            p === 'feed' ? tg.BackButton.hide() : tg.BackButton.show();
+            tg.BackButton.onClick(() => showPage('feed'));
         }
 
         loadData();
