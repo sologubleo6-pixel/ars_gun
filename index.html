@@ -10,41 +10,36 @@
             --tg-text: var(--tg-theme-text-color, #000000); 
             --tg-link: var(--tg-theme-link-color, #248bed); 
             --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #f0f0f0); 
-            --tg-hint: var(--tg-theme-hint-color, #999999);
         }
         body { font-family: sans-serif; background: var(--tg-bg); color: var(--tg-text); margin: 0; padding-bottom: 90px; }
-        
-        .page { display: none; padding: 15px; animation: fadeIn 0.2s; }
+        .page { display: none; padding: 15px; }
         .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Посты (новости и товары) */
-        .item-card { background: var(--tg-secondary-bg); border-radius: 15px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .item-card img { width: 100%; max-height: 280px; object-fit: cover; background: #eee; }
+        
+        /* Карточки постов и товаров */
+        .item-card { background: var(--tg-secondary-bg); border-radius: 15px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .item-card img { width: 100%; max-height: 280px; object-fit: cover; }
         .item-info { padding: 15px; }
-        .item-price { background: var(--tg-link); color: white; padding: 5px 12px; border-radius: 7px; font-weight: bold; display: inline-block; margin-bottom: 8px; font-size: 14px; }
-        .item-title { font-size: 18px; font-weight: bold; display: block; margin-bottom: 5px; }
+        .item-price { background: var(--tg-link); color: white; padding: 4px 12px; border-radius: 6px; font-weight: bold; display: inline-block; margin-bottom: 8px; }
+        
+        /* Крупное нижнее меню */
+        .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 75px; background: var(--tg-secondary-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(0,0,0,0.1); }
+        .tab-item { text-align: center; font-size: 12px; flex: 1; color: var(--tg-theme-hint-color); }
+        .tab-item .icon { font-size: 28px; display: block; margin-bottom: 3px; }
 
-        /* Увеличенное нижнее меню */
-        .tab-bar { 
-            position: fixed; bottom: 0; left: 0; right: 0; height: 75px; 
-            background: var(--tg-secondary-bg); display: flex; 
-            justify-content: space-around; align-items: center; 
-            border-top: 1px solid rgba(0,0,0,0.1); z-index: 1000;
-        }
-        .tab-item { text-align: center; font-size: 12px; flex: 1; cursor: pointer; color: var(--tg-hint); transition: 0.2s; }
-        .tab-item.active { color: var(--tg-link); font-weight: bold; }
-        .tab-item .icon { font-size: 28px; display: block; margin-bottom: 4px; } /* Крупные иконки */
+        /* Админ-кнопки */
+        #admin-btn { position: fixed; top: 15px; right: 15px; z-index: 1001; background: #ff4444; color: white; border: none; width: 45px; height: 45px; border-radius: 50%; font-size: 24px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        .admin-controls { display: flex; gap: 10px; margin-top: 10px; }
+        .btn-edit { background: var(--tg-link); color: white; border: none; padding: 8px; border-radius: 6px; flex: 1; }
+        .btn-delete { background: #ff4444; color: white; border: none; padding: 8px; border-radius: 6px; flex: 1; }
 
-        /* Кнопка админа */
-        #admin-btn { position: fixed; top: 15px; right: 15px; z-index: 1001; background: #ff4444; color: white; border: none; border-radius: 50%; width: 45px; height: 45px; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        /* Форма */
         .form-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--tg-bg); z-index: 2000; padding: 20px; overflow-y: auto; }
-        input, textarea, select { width: 100%; padding: 14px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 10px; background: var(--tg-secondary-bg); color: var(--tg-text); font-size: 16px; box-sizing: border-box; }
+        input, textarea, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ccc; background: var(--tg-secondary-bg); color: var(--tg-text); box-sizing: border-box; }
     </style>
 </head>
 <body>
 
-    <button id="admin-btn" style="display:none;" onclick="document.getElementById('post-form').style.display='block'">+</button>
+    <button id="admin-btn" onclick="openAddForm()">+</button>
 
     <div id="feed" class="page active"><h2>🔥 Лента новостей</h2><div id="feed-list"></div></div>
     <div id="powder" class="page"><h2>🧪 Порох</h2><div id="powder-list"></div></div>
@@ -53,20 +48,20 @@
     <div id="commission" class="page"><h2>♻️ Комиссионка</h2><div id="comm-list"></div></div>
 
     <div id="post-form" class="form-overlay">
-        <h3>Создать публикацию</h3>
+        <h3 id="form-title">Новый пост</h3>
         <select id="f-cat">
             <option value="Новости">Новость в ленту</option>
-            <option value="Порох">Товар: Порох</option>
-            <option value="Патроны">Товар: Патроны</option>
-            <option value="Оружие">Товар: Оружие</option>
-            <option value="Комиссионка">Товар: Комиссионка</option>
+            <option value="Порох">Порох</option>
+            <option value="Патроны">Патроны</option>
+            <option value="Оружие">Оружие</option>
+            <option value="Комиссионка">Комиссионка</option>
         </select>
-        <input type="text" id="f-name" placeholder="Заголовок/Название">
-        <input type="text" id="f-price" placeholder="Цена (если товар)">
+        <input type="text" id="f-name" placeholder="Название">
+        <input type="text" id="f-price" placeholder="Цена (для новостей оставь пусто)">
         <input type="text" id="f-photo" placeholder="Ссылка на фото">
-        <textarea id="f-desc" placeholder="Текст сообщения"></textarea>
-        <button onclick="publishPost()" style="width:100%; background:var(--tg-link); color:white; padding:16px; border:none; border-radius:10px; font-weight:bold;">Опубликовать</button>
-        <button onclick="document.getElementById('post-form').style.display='none'" style="width:100%; margin-top:10px; background:none; border:none; color:var(--tg-hint);">Отмена</button>
+        <textarea id="f-desc" placeholder="Описание"></textarea>
+        <button onclick="submitData()" style="width:100%; background:var(--tg-link); color:white; padding:15px; border:none; border-radius:8px; font-weight:bold;">СОХРАНИТЬ</button>
+        <button onclick="closeForm()" style="width:100%; margin-top:10px; background:none; border:none; color:var(--tg-link);">Отмена</button>
     </div>
 
     <div class="tab-bar">
@@ -81,81 +76,88 @@
         tg.ready();
         tg.expand();
 
-        const READ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU32ejIBvBjA7CHetO52InIBmTUmKug758-lrApf_4NSoG-Egg0QojyavxRHbvMU4GOGQmQWPVrhFU/pub?output=csv'; 
-        const WRITE_URL = 'https://script.google.com/macros/s/AKfycbymWSjpYKU-zr0jNyVqwoYaj_Wq0Ffh_0rnQVw8FdEPlV3_aVPlJppTRnR3WyKPakyiKQ/exec'; 
+        const READ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU32ejIBvBjA7CHetO52InIBmTUmKug758-lrApf_4NSoG-Egg0QojyavxRHbvMU4GOGQmQWPVrhFU/pubhtml'; 
+        const WRITE_URL = 'https://script.google.com/macros/s/AKfycby1uBvi9TIk5-4x1ITk-m9HOmJWaeMp5yP9_j4X1_bb7RsKIitaWdYg0wTC8LIyLT-q3w/exec'; 
 
-        // Показываем админку всем для теста, потом можешь ограничить по ID
-        document.getElementById('admin-btn').style.display = 'block';
+        let isEditing = false;
+        let oldName = "";
 
         async function loadData() {
-            try {
-                const resp = await fetch(READ_URL);
-                const text = await resp.text();
-                const rows = text.split('\n').slice(1);
+            const resp = await fetch(READ_URL);
+            const text = await resp.text();
+            const rows = text.split('\n').slice(1);
+            
+            const ids = {'Новости':'feed-list', 'Порох':'powder-list', 'Патроны':'ammo-list', 'Оружие':'guns-list', 'Комиссионка':'comm-list'};
+            Object.values(ids).forEach(id => document.getElementById(id).innerHTML = '');
+
+            rows.forEach(row => {
+                const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                if (cols.length < 3) return;
+                const [cat, name, price, photo, desc] = cols.map(c => c.replace(/"/g, '').trim());
                 
-                const containers = {
-                    'Новости': 'feed-list',
-                    'Порох': 'powder-list',
-                    'Патроны': 'ammo-list',
-                    'Оружие': 'guns-list',
-                    'Комиссионка': 'comm-list'
-                };
-
-                // Очистка перед загрузкой
-                Object.values(containers).forEach(id => document.getElementById(id).innerHTML = '');
-
-                rows.forEach(row => {
-                    const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                    if (cols.length < 3) return;
-                    const [cat, name, price, photo, desc] = cols.map(c => c.replace(/"/g, '').trim());
-                    
-                    const priceTag = price ? `<span class="item-price">${price} ₽</span>` : '';
-                    const card = `
-                        <div class="item-card">
-                            <img src="${photo || 'https://via.placeholder.com/400x200'}" onerror="this.style.display='none'">
-                            <div class="item-info">
-                                ${priceTag}
-                                <span class="item-title">${name}</span>
-                                <p style="margin:5px 0; color:var(--tg-text); font-size:14px;">${desc}</p>
+                const card = `
+                    <div class="item-card">
+                        <img src="${photo || 'https://via.placeholder.com/400x200'}" onerror="this.style.display='none'">
+                        <div class="item-info">
+                            ${price ? `<span class="item-price">${price} ₽</span>` : ''}
+                            <b style="display:block; font-size:18px;">${name}</b>
+                            <p style="font-size:14px; color:var(--tg-text);">${desc}</p>
+                            <div class="admin-controls">
+                                <button class="btn-edit" onclick="openEditForm('${cat}','${name}','${price}','${photo}','${desc.replace(/'/g, "\\'")}')">Править</button>
+                                <button class="btn-delete" onclick="deletePost('${name}')">Удалить</button>
                             </div>
-                        </div>`;
-                    
-                    if (containers[cat]) document.getElementById(containers[cat]).innerHTML += card;
-                });
-            } catch(e) { console.error("Ошибка загрузки данных"); }
+                        </div>
+                    </div>`;
+                if (ids[cat]) document.getElementById(ids[cat]).innerHTML += card;
+            });
         }
 
-        function showPage(pageId) {
-            document.querySelectorAll('.page').forEach(div => div.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-
-            // Управление кнопкой НАЗАД
-            if (pageId === 'feed') {
-                tg.BackButton.hide();
-            } else {
-                tg.BackButton.show();
-                // Удаляем старые слушатели и ставим новый
-                tg.BackButton.offClick(); 
-                tg.BackButton.onClick(() => {
-                    showPage('feed');
-                });
-            }
+        function showPage(p) {
+            document.querySelectorAll('.page').forEach(d => d.classList.remove('active'));
+            document.getElementById(p).classList.add('active');
+            p === 'feed' ? tg.BackButton.hide() : (tg.BackButton.show(), tg.BackButton.offClick(), tg.BackButton.onClick(() => showPage('feed')));
         }
 
-        async function publishPost() {
+        function openAddForm() { 
+            isEditing = false; 
+            document.getElementById('form-title').innerText = "Новый пост";
+            document.getElementById('post-form').style.display = 'block'; 
+        }
+
+        function openEditForm(cat, name, price, photo, desc) {
+            isEditing = true; oldName = name;
+            document.getElementById('form-title').innerText = "Правка товара";
+            document.getElementById('f-cat').value = cat;
+            document.getElementById('f-name').value = name;
+            document.getElementById('f-price').value = price;
+            document.getElementById('f-photo').value = photo;
+            document.getElementById('f-desc').value = desc;
+            document.getElementById('post-form').style.display = 'block';
+        }
+
+        async function submitData() {
             const data = {
+                action: isEditing ? 'edit' : 'add',
+                oldName: oldName,
                 category: document.getElementById('f-cat').value,
                 name: document.getElementById('f-name').value,
                 price: document.getElementById('f-price').value,
                 photo: document.getElementById('f-photo').value,
                 desc: document.getElementById('f-desc').value
             };
-            tg.MainButton.setText("Публикация...").show();
+            tg.MainButton.setText("Сохранение...").show();
             await fetch(WRITE_URL, { method: 'POST', body: JSON.stringify(data) });
-            tg.MainButton.hide();
-            document.getElementById('post-form').style.display='none';
             location.reload();
         }
+
+        async function deletePost(name) {
+            if (!confirm(`Удалить "${name}"?`)) return;
+            tg.MainButton.setText("Удаление...").show();
+            await fetch(WRITE_URL, { method: 'POST', body: JSON.stringify({action: 'delete', name: name}) });
+            location.reload();
+        }
+
+        function closeForm() { document.getElementById('post-form').style.display = 'none'; }
 
         loadData();
     </script>
