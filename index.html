@@ -8,84 +8,98 @@
         :root {
             --tg-bg: var(--tg-theme-bg-color, #ffffff);
             --tg-text: var(--tg-theme-text-color, #000000);
-            --tg-hint: var(--tg-theme-hint-color, #999999);
+            --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #f0f0f0);
             --tg-link: var(--tg-theme-link-color, #248bed);
+            --tg-hint: var(--tg-theme-hint-color, #999999);
         }
         body { 
             font-family: sans-serif; background-color: var(--tg-bg); color: var(--tg-text);
-            margin: 0; padding-bottom: 70px; 
+            margin: 0; padding-bottom: 80px; 
         }
         .page { display: none; padding: 15px; }
         .page.active { display: block; }
 
-        /* Стили постов */
-        .post { background: var(--tg-theme-secondary-bg-color); border-radius: 12px; margin-bottom: 15px; overflow: hidden; }
-        .post img { width: 100%; height: 150px; object-fit: cover; }
-        .post-info { padding: 10px; }
+        /* Стиль ленты новостей */
+        .news-card { background: var(--tg-secondary-bg); border-radius: 12px; margin-bottom: 15px; overflow: hidden; }
+        .news-card img { width: 100%; height: 180px; object-fit: cover; }
+        .news-content { padding: 12px; }
 
-        /* Меню */
+        /* Кнопка возврата внутри страниц */
+        .back-btn { 
+            background: var(--tg-link); color: white; border: none; 
+            padding: 10px 15px; border-radius: 8px; margin-bottom: 20px; cursor: pointer;
+        }
+
+        /* Нижнее меню (только 4 раздела) */
         .tab-bar {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 60px;
-            background: var(--tg-theme-secondary-bg-color);
+            position: fixed; bottom: 0; left: 0; right: 0; height: 65px;
+            background: var(--tg-secondary-bg);
             display: flex; justify-content: space-around; align-items: center;
             border-top: 1px solid rgba(0,0,0,0.1);
         }
-        .tab-item { text-align: center; font-size: 10px; color: var(--tg-hint); flex: 1; cursor: pointer; }
-        .tab-item.active { color: var(--tg-link); }
-        .icon { font-size: 20px; display: block; }
+        .tab-item { text-align: center; font-size: 11px; color: var(--tg-hint); flex: 1; }
+        .icon { font-size: 22px; display: block; margin-bottom: 3px; }
     </style>
 </head>
 <body>
 
     <div id="feed" class="page active">
-        <h2>Свежие новости</h2>
-        <div class="post">
-            <img src="https://via.placeholder.com/400x150?text=News+1">
-            <div class="post-info"><b>Новинка!</b> Порох в наличии.</div>
+        <header><h2>Новости и Акции</h2></header>
+        <div class="news-card">
+            <img src="https://via.placeholder.com/400x180?text=Скидки+на+патроны">
+            <div class="news-content"><b>Акция!</b> При покупке 100 шт — скидка 10%.</div>
         </div>
     </div>
 
     <div id="powder" class="page">
-        <button onclick="showPage('feed')">← Назад к ленте</button>
-        <h2>Раздел: Порох</h2>
-        <p>Список товаров будет здесь...</p>
+        <button class="back-btn" onclick="showPage('feed')">← Назад в ленту</button>
+        <h2>🧪 Порох</h2>
+        <p>Здесь будет список из таблицы...</p>
     </div>
 
     <div id="ammo" class="page">
-        <button onclick="showPage('feed')">← Назад к ленте</button>
-        <h2>Раздел: Патроны</h2>
-        <p>Список патронов...</p>
+        <button class="back-btn" onclick="showPage('feed')">← Назад в ленту</button>
+        <h2>🔫 Патроны</h2>
+        <p>Здесь будут патроны...</p>
+    </div>
+
+    <div id="guns" class="page">
+        <button class="back-btn" onclick="showPage('feed')">← Назад в ленту</button>
+        <h2>🧰 Оружие</h2>
+        <p>Список оружия...</p>
     </div>
 
     <div id="commission" class="page">
-        <button onclick="showPage('feed')">← Назад к ленте</button>
-        <h2>Комиссионные товары</h2>
-        <p>Б/У товары здесь...</p>
+        <button class="back-btn" onclick="showPage('feed')">← Назад в ленту</button>
+        <h2>♻️ Комиссионка</h2>
+        <p>Б/У товары...</p>
     </div>
 
     <div class="tab-bar">
-        <div class="tab-item" onclick="showPage('feed')"><span class="icon">🏠</span>Лента</div>
         <div class="tab-item" onclick="showPage('powder')"><span class="icon">🧪</span>Порох</div>
         <div class="tab-item" onclick="showPage('ammo')"><span class="icon">🔫</span>Патроны</div>
+        <div class="tab-item" onclick="showPage('guns')"><span class="icon">🧰</span>Оружие</div>
         <div class="tab-item" onclick="showPage('commission')"><span class="icon">♻️</span>Комисс.</div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
+        tg.expand();
 
         function showPage(pageId) {
-            // Прячем все страницы
+            // Скрываем всё, показываем выбранное
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            // Показываем нужную
             document.getElementById(pageId).classList.add('active');
-            
-            // Если мы не на главной, можно показать кнопку "Назад" в самом Telegram
+
+            // Управление системной кнопкой "Назад" в Telegram
             if (pageId === 'feed') {
                 tg.BackButton.hide();
             } else {
                 tg.BackButton.show();
-                tg.BackButton.onClick(() => showPage('feed'));
+                tg.BackButton.onClick(() => {
+                    showPage('feed');
+                });
             }
         }
     </script>
