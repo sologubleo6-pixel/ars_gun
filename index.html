@@ -13,7 +13,6 @@
             --tg-hint: var(--tg-theme-hint-color, #999999);
         }
         body { font-family: sans-serif; background: var(--tg-bg); color: var(--tg-text); margin: 0; padding-bottom: 100px; }
-        
         .page { display: none; padding: 15px; }
         .page.active { display: block; }
 
@@ -81,13 +80,10 @@
         tg.ready();
         tg.expand();
 
-        // НАСТРОЙКИ
-        const RAW_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU32ejIBvBjA7CHetO52InIBmTUmKug758-lrApf_4NSoG-Egg0QojyavxRHbvMU4GOGQmQWPVrhFU/pub?gid=1976519812&single=true&output=csv'; // Та, что заканчивается на output=csv
+        // --- НАСТРОЙКИ ---
+        const READ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU32ejIBvBjA7CHetO52InIBmTUmKug758-lrApf_4NSoG-Egg0QojyavxRHbvMU4GOGQmQWPVrhFU/pub?gid=1976519812&single=true&output=csv'; // Должна заканчиваться на output=csv
         const WRITE_URL = 'https://script.google.com/macros/s/AKfycbxu1DkZb2ZY85neMdVq4RySEIHBV8QwZT_gyUNwZ4pUPAgPazNI6lZLPtZkiyfcqV7xTw/exec'; 
-        const ADMIN_IDS = [461880012, 6606101996]; // Ваши ID через запятую
-
-        // Используем прокси для обхода ошибки Failed to fetch
-        const READ_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(RAW_CSV_URL);
+        const ADMIN_IDS = [6606101996, 461880012]; // ID админов через запятую
 
         let isAdmin = false;
         let isEditing = false;
@@ -100,9 +96,9 @@
 
         async function loadData() {
             try {
-                const resp = await fetch(READ_URL);
-                if (!resp.ok) throw new Error("Ошибка сети");
-                const text = await resp.text();
+                const response = await fetch(READ_URL + "?t=" + new Date().getTime()); // Обход кэша
+                if (!response.ok) throw new Error();
+                const text = await response.text();
                 
                 const rows = text.split(/\r?\n/).filter(line => line.trim() !== "").slice(1);
                 const containers = {'новости':'feed-list', 'порох':'powder-list', 'патроны':'ammo-list', 'оружие':'guns-list', 'комиссионка':'comm-list'};
@@ -119,9 +115,9 @@
                     const photo = cols[3] ? cols[3].replace(/"/g, '').trim() : '';
                     const desc = cols[4] ? cols[4].replace(/"/g, '').trim() : '';
 
-                    let adminControls = '';
+                    let adminBlock = '';
                     if (isAdmin) {
-                        adminControls = `
+                        adminBlock = `
                             <div class="admin-controls" style="display:flex;">
                                 <button class="btn-edit" onclick="openEditForm('${cols[0].trim()}','${name}','${price}','${photo}','${desc.replace(/'/g, "\\'")}')">Править</button>
                                 <button class="btn-delete" onclick="deletePost('${name}')">Удалить</button>
@@ -135,14 +131,14 @@
                                 ${price ? `<span class="item-price">${price} ₽</span>` : ''}
                                 <span class="item-title">${name}</span>
                                 <p style="font-size:14px; margin:5px 0; white-space:pre-wrap;">${desc}</p>
-                                ${adminControls}
+                                ${adminBlock}
                             </div>
                         </div>`;
                     
                     if (containers[cat]) document.getElementById(containers[cat]).innerHTML += card;
                 });
             } catch (e) {
-                alert("Ошибка загрузки данных. Проверьте публикацию таблицы.");
+                alert("Ошибка загрузки. Проверьте кнопку 'Опубликовать' в таблице.");
             }
         }
 
@@ -155,14 +151,12 @@
 
         function openAddForm() {
             isEditing = false;
-            document.getElementById('form-title').innerText = "Новый пост";
             ['f-name', 'f-price', 'f-photo', 'f-desc'].forEach(id => document.getElementById(id).value = '');
             document.getElementById('post-form').style.display = 'block';
         }
 
         function openEditForm(cat, name, price, photo, desc) {
             isEditing = true; oldName = name;
-            document.getElementById('form-title').innerText = "Редактирование";
             document.getElementById('f-cat').value = cat;
             document.getElementById('f-name').value = name;
             document.getElementById('f-price').value = price;
@@ -172,7 +166,7 @@
         }
 
         async function submitData() {
-            tg.MainButton.setText("Сохранение...").show();
+            tg.MainButton.setText("Загрузка...").show();
             const data = {
                 action: isEditing ? 'edit' : 'add',
                 oldName: oldName,
@@ -183,14 +177,14 @@
                 desc: document.getElementById('f-desc').value
             };
             await fetch(WRITE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-            setTimeout(() => { location.reload(); }, 800);
+            setTimeout(() => location.reload(), 800);
         }
 
         async function deletePost(name) {
             if (!confirm(`Удалить "${name}"?`)) return;
             tg.MainButton.setText("Удаление...").show();
             await fetch(WRITE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({action: 'delete', name: name}) });
-            setTimeout(() => { location.reload(); }, 800);
+            setTimeout(() => location.reload(), 800);
         }
 
         function closeForm() { document.getElementById('post-form').style.display = 'none'; }
@@ -199,5 +193,3 @@
     </script>
 </body>
 </html>
-
-
