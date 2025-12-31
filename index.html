@@ -13,32 +13,29 @@
             --tg-hint: var(--tg-theme-hint-color, #999999);
         }
         body { font-family: sans-serif; background: var(--tg-bg); color: var(--tg-text); margin: 0; padding-bottom: 100px; }
-        
         .page { display: none; padding: 15px; }
         .page.active { display: block; }
 
-        /* Посты и товары */
+        /* Карточки товаров */
         .item-card { background: var(--tg-secondary-bg); border-radius: 15px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .item-card img { width: 100%; max-height: 280px; object-fit: cover; }
+        .item-card img { width: 100%; max-height: 280px; object-fit: cover; background: #eee; }
         .item-info { padding: 15px; }
-        .item-price { background: var(--tg-link); color: white; padding: 4px 12px; border-radius: 6px; font-weight: bold; display: inline-block; margin-bottom: 8px; font-size: 14px; }
+        .item-price { background: var(--tg-link); color: white; padding: 5px 12px; border-radius: 7px; font-weight: bold; display: inline-block; margin-bottom: 8px; }
         .item-title { font-size: 18px; font-weight: bold; display: block; margin-bottom: 5px; }
 
-        /* Кнопки управления для админа (скрыты по умолчанию) */
-        .admin-controls { display: none; gap: 10px; margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.05); }
+        /* Админка */
+        .admin-controls { display: none; gap: 10px; margin-top: 15px; }
         .btn-edit { background: var(--tg-link); color: white; border: none; padding: 10px; border-radius: 8px; flex: 1; font-weight: bold; }
         .btn-delete { background: #ff4444; color: white; border: none; padding: 10px; border-radius: 8px; flex: 1; font-weight: bold; }
+        #admin-btn { position: fixed; top: 15px; right: 15px; z-index: 1001; display: none; background: #ff4444; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 
-        /* Нижнее меню с крупными иконками */
+        /* Меню */
         .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 80px; background: var(--tg-secondary-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(0,0,0,0.1); z-index: 1000; }
         .tab-item { text-align: center; font-size: 12px; flex: 1; color: var(--tg-hint); cursor: pointer; }
         .tab-item.active { color: var(--tg-link); font-weight: bold; }
         .tab-item .icon { font-size: 30px; display: block; margin-bottom: 4px; }
 
-        /* Кнопка "+" для админа */
-        #admin-btn { position: fixed; top: 15px; right: 15px; z-index: 1001; display: none; background: #ff4444; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-
-        /* Форма создания/редактирования */
+        /* Форма */
         .form-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--tg-bg); z-index: 2000; padding: 20px; overflow-y: auto; }
         input, textarea, select { width: 100%; padding: 14px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 10px; background: var(--tg-secondary-bg); color: var(--tg-text); font-size: 16px; box-sizing: border-box; }
     </style>
@@ -57,17 +54,17 @@
         <h3 id="form-title">Новый пост</h3>
         <select id="f-cat">
             <option value="Новости">Новость в ленту</option>
-            <option value="Порох">Товар: Порох</option>
-            <option value="Патроны">Товар: Патроны</option>
-            <option value="Оружие">Товар: Оружие</option>
-            <option value="Комиссионка">Товар: Комиссионка</option>
+            <option value="Порох">Порох</option>
+            <option value="Патроны">Патроны</option>
+            <option value="Оружие">Оружие</option>
+            <option value="Комиссионка">Комиссионка</option>
         </select>
-        <input type="text" id="f-name" placeholder="Заголовок/Название">
-        <input type="text" id="f-price" placeholder="Цена (только цифры)">
+        <input type="text" id="f-name" placeholder="Название">
+        <input type="text" id="f-price" placeholder="Цена">
         <input type="text" id="f-photo" placeholder="Ссылка на фото (URL)">
-        <textarea id="f-desc" placeholder="Описание/Текст"></textarea>
-        <button onclick="submitData()" style="width:100%; background:var(--tg-link); color:white; padding:16px; border:none; border-radius:10px; font-weight:bold; font-size:16px;">СОХРАНИТЬ</button>
-        <button onclick="closeForm()" style="width:100%; margin-top:15px; background:none; border:none; color:var(--tg-link); font-size:16px;">Отмена</button>
+        <textarea id="f-desc" placeholder="Описание"></textarea>
+        <button onclick="submitData()" style="width:100%; background:var(--tg-link); color:white; padding:16px; border:none; border-radius:10px; font-weight:bold;">СОХРАНИТЬ</button>
+        <button onclick="closeForm()" style="width:100%; margin-top:15px; background:none; border:none; color:var(--tg-link);">Отмена</button>
     </div>
 
     <div class="tab-bar">
@@ -82,16 +79,14 @@
         tg.ready();
         tg.expand();
 
-        // --- НАСТРОЙКИ ---
         const READ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU32ejIBvBjA7CHetO52InIBmTUmKug758-lrApf_4NSoG-Egg0QojyavxRHbvMU4GOGQmQWPVrhFU/pub?gid=0&single=true&output=csv'; 
         const WRITE_URL = 'https://script.google.com/macros/s/AKfycbw6ulfE7N417pE_adfdkVjp0cFzc4WV58wSSC8cr1ATleTehlDqWKCNC3PRTjFaeBUZ6g/exec'; 
-        const MY_ADMIN_ID = 461880012; // ЗАМЕНИ НА СВОЙ ID
+        const MY_ADMIN_ID = 6606101996,461880012; // ТВОЙ ID
 
         let isEditing = false;
         let oldName = "";
         let isAdmin = false;
 
-        // Проверка прав админа
         if (tg.initDataUnsafe.user && tg.initDataUnsafe.user.id === MY_ADMIN_ID) {
             isAdmin = true;
             document.getElementById('admin-btn').style.display = 'block';
@@ -99,7 +94,7 @@
 
         async function loadData() {
             try {
-                const resp = await fetch(READ_URL);
+                const resp = await fetch(READ_URL + "?t=" + new Date().getTime()); // Обход кэша
                 const text = await resp.text();
                 const rows = text.split('\n').slice(1);
                 
@@ -111,7 +106,6 @@
                     if (cols.length < 3) return;
                     const [cat, name, price, photo, desc] = cols.map(c => c.replace(/"/g, '').trim());
                     
-                    // Блок кнопок только для админа
                     let adminButtons = '';
                     if (isAdmin) {
                         adminButtons = `
@@ -134,35 +128,25 @@
                     
                     if (containers[cat]) document.getElementById(containers[cat]).innerHTML += card;
                 });
-            } catch (e) { console.error("Ошибка загрузки"); }
+            } catch (e) { console.error("Load error"); }
         }
 
         function showPage(p) {
             document.querySelectorAll('.page').forEach(d => d.classList.remove('active'));
             document.getElementById(p).classList.add('active');
-            
-            if (p === 'feed') {
-                tg.BackButton.hide();
-            } else {
-                tg.BackButton.show();
-                tg.BackButton.offClick(); 
-                tg.BackButton.onClick(() => showPage('feed'));
-            }
+            if (p === 'feed') { tg.BackButton.hide(); } 
+            else { tg.BackButton.show(); tg.BackButton.offClick(); tg.BackButton.onClick(() => showPage('feed')); }
         }
 
         function openAddForm() {
             isEditing = false;
             document.getElementById('form-title').innerText = "Новый пост";
-            document.getElementById('f-name').value = '';
-            document.getElementById('f-price').value = '';
-            document.getElementById('f-photo').value = '';
-            document.getElementById('f-desc').value = '';
+            ['f-name', 'f-price', 'f-photo', 'f-desc'].forEach(id => document.getElementById(id).value = '');
             document.getElementById('post-form').style.display = 'block';
         }
 
         function openEditForm(cat, name, price, photo, desc) {
-            isEditing = true;
-            oldName = name;
+            isEditing = true; oldName = name;
             document.getElementById('form-title').innerText = "Редактирование";
             document.getElementById('f-cat').value = cat;
             document.getElementById('f-name').value = name;
@@ -183,19 +167,20 @@
                 desc: document.getElementById('f-desc').value
             };
             tg.MainButton.setText("Сохранение...").show();
-            await fetch(WRITE_URL, { method: 'POST', body: JSON.stringify(data) });
-            location.reload();
+            // Ключевое исправление: mode: 'no-cors'
+            await fetch(WRITE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+            setTimeout(() => { location.reload(); }, 600);
         }
 
         async function deletePost(name) {
             if (!confirm(`Удалить "${name}"?`)) return;
             tg.MainButton.setText("Удаление...").show();
-            await fetch(WRITE_URL, { method: 'POST', body: JSON.stringify({action: 'delete', name: name}) });
-            location.reload();
+            // Ключевое исправление: mode: 'no-cors'
+            await fetch(WRITE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({action: 'delete', name: name}) });
+            setTimeout(() => { location.reload(); }, 600);
         }
 
         function closeForm() { document.getElementById('post-form').style.display = 'none'; }
-
         loadData();
     </script>
 </body>
