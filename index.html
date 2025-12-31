@@ -13,29 +13,34 @@
             --tg-hint: var(--tg-theme-hint-color, #999999);
         }
         body { font-family: sans-serif; background: var(--tg-bg); color: var(--tg-text); margin: 0; padding-bottom: 100px; }
-        .page { display: none; padding: 15px; }
+        
+        /* Страницы */
+        .page { display: none; padding: 15px; animation: fadeIn 0.2s; }
         .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Карточки товаров */
+        /* Карточки */
         .item-card { background: var(--tg-secondary-bg); border-radius: 15px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .item-card img { width: 100%; max-height: 280px; object-fit: cover; background: #eee; }
         .item-info { padding: 15px; }
-        .item-price { background: var(--tg-link); color: white; padding: 5px 12px; border-radius: 7px; font-weight: bold; display: inline-block; margin-bottom: 8px; }
+        .item-price { background: var(--tg-link); color: white; padding: 5px 12px; border-radius: 7px; font-weight: bold; display: inline-block; margin-bottom: 8px; font-size: 14px; }
         .item-title { font-size: 18px; font-weight: bold; display: block; margin-bottom: 5px; }
 
-        /* Админка */
-        .admin-controls { display: none; gap: 10px; margin-top: 15px; }
+        /* Админка (кнопки внутри карточек) */
+        .admin-controls { display: none; gap: 10px; margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.05); }
         .btn-edit { background: var(--tg-link); color: white; border: none; padding: 10px; border-radius: 8px; flex: 1; font-weight: bold; }
         .btn-delete { background: #ff4444; color: white; border: none; padding: 10px; border-radius: 8px; flex: 1; font-weight: bold; }
+
+        /* Плавающая кнопка ПЛЮС */
         #admin-btn { position: fixed; top: 15px; right: 15px; z-index: 1001; display: none; background: #ff4444; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 
-        /* Меню */
+        /* Нижнее меню */
         .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 80px; background: var(--tg-secondary-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(0,0,0,0.1); z-index: 1000; }
         .tab-item { text-align: center; font-size: 12px; flex: 1; color: var(--tg-hint); cursor: pointer; }
         .tab-item.active { color: var(--tg-link); font-weight: bold; }
         .tab-item .icon { font-size: 30px; display: block; margin-bottom: 4px; }
 
-        /* Форма */
+        /* Оверлей формы */
         .form-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--tg-bg); z-index: 2000; padding: 20px; overflow-y: auto; }
         input, textarea, select { width: 100%; padding: 14px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 10px; background: var(--tg-secondary-bg); color: var(--tg-text); font-size: 16px; box-sizing: border-box; }
     </style>
@@ -61,10 +66,10 @@
         </select>
         <input type="text" id="f-name" placeholder="Название">
         <input type="text" id="f-price" placeholder="Цена">
-        <input type="text" id="f-photo" placeholder="Ссылка на фото (URL)">
+        <input type="text" id="f-photo" placeholder="Ссылка на фото">
         <textarea id="f-desc" placeholder="Описание"></textarea>
-        <button onclick="submitData()" style="width:100%; background:var(--tg-link); color:white; padding:16px; border:none; border-radius:10px; font-weight:bold;">СОХРАНИТЬ</button>
-        <button onclick="closeForm()" style="width:100%; margin-top:15px; background:none; border:none; color:var(--tg-link);">Отмена</button>
+        <button onclick="submitData()" style="width:100%; background:var(--tg-link); color:white; padding:16px; border:none; border-radius:10px; font-weight:bold; font-size:16px;">СОХРАНИТЬ</button>
+        <button onclick="closeForm()" style="width:100%; margin-top:15px; background:none; border:none; color:var(--tg-link); font-size:16px;">Отмена</button>
     </div>
 
     <div class="tab-bar">
@@ -79,22 +84,26 @@
         tg.ready();
         tg.expand();
 
+        // --- БЛОК НАСТРОЕК ---
         const READ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU32ejIBvBjA7CHetO52InIBmTUmKug758-lrApf_4NSoG-Egg0QojyavxRHbvMU4GOGQmQWPVrhFU/pub?gid=0&single=true&output=csv'; 
         const WRITE_URL = 'https://script.google.com/macros/s/AKfycbw6ulfE7N417pE_adfdkVjp0cFzc4WV58wSSC8cr1ATleTehlDqWKCNC3PRTjFaeBUZ6g/exec'; 
-        const MY_ADMIN_ID = [6606101996,461880012]; // ТВОЙ ID
+        const ADMIN_IDS = [6606101996, 461880012]; // ВПИШИ ID АДМИНОВ ЧЕРЕЗ ЗАПЯТУЮ
 
         let isEditing = false;
         let oldName = "";
         let isAdmin = false;
 
+        // 1. Проверка прав админа
         if (tg.initDataUnsafe.user && ADMIN_IDS.includes(tg.initDataUnsafe.user.id)) {
             isAdmin = true;
             document.getElementById('admin-btn').style.display = 'block';
         }
 
+        // 2. Загрузка данных из таблицы
         async function loadData() {
             try {
-                const resp = await fetch(READ_URL + "?t=" + new Date().getTime()); // Обход кэша
+                // Добавляем timestamp для обхода кэша Google
+                const resp = await fetch(READ_URL + "?t=" + new Date().getTime());
                 const text = await resp.text();
                 const rows = text.split('\n').slice(1);
                 
@@ -106,9 +115,9 @@
                     if (cols.length < 3) return;
                     const [cat, name, price, photo, desc] = cols.map(c => c.replace(/"/g, '').trim());
                     
-                    let adminButtons = '';
+                    let adminBlock = '';
                     if (isAdmin) {
-                        adminButtons = `
+                        adminBlock = `
                             <div class="admin-controls" style="display:flex;">
                                 <button class="btn-edit" onclick="openEditForm('${cat}','${name}','${price}','${photo}','${desc.replace(/'/g, "\\'")}')">Править</button>
                                 <button class="btn-delete" onclick="deletePost('${name}')">Удалить</button>
@@ -122,22 +131,30 @@
                                 ${price ? `<span class="item-price">${price} ₽</span>` : ''}
                                 <span class="item-title">${name}</span>
                                 <p style="font-size:14px; margin:5px 0;">${desc}</p>
-                                ${adminButtons}
+                                ${adminBlock}
                             </div>
                         </div>`;
                     
                     if (containers[cat]) document.getElementById(containers[cat]).innerHTML += card;
                 });
-            } catch (e) { console.error("Load error"); }
+            } catch (e) { console.error("Ошибка загрузки данных"); }
         }
 
+        // 3. Навигация
         function showPage(p) {
             document.querySelectorAll('.page').forEach(d => d.classList.remove('active'));
             document.getElementById(p).classList.add('active');
-            if (p === 'feed') { tg.BackButton.hide(); } 
-            else { tg.BackButton.show(); tg.BackButton.offClick(); tg.BackButton.onClick(() => showPage('feed')); }
+            
+            if (p === 'feed') {
+                tg.BackButton.hide();
+            } else {
+                tg.BackButton.show();
+                tg.BackButton.offClick(); 
+                tg.BackButton.onClick(() => showPage('feed'));
+            }
         }
 
+        // 4. Функции формы
         function openAddForm() {
             isEditing = false;
             document.getElementById('form-title').innerText = "Новый пост";
@@ -146,7 +163,8 @@
         }
 
         function openEditForm(cat, name, price, photo, desc) {
-            isEditing = true; oldName = name;
+            isEditing = true;
+            oldName = name;
             document.getElementById('form-title').innerText = "Редактирование";
             document.getElementById('f-cat').value = cat;
             document.getElementById('f-name').value = name;
@@ -156,6 +174,7 @@
             document.getElementById('post-form').style.display = 'block';
         }
 
+        // 5. Отправка данных (ADD / EDIT)
         async function submitData() {
             const data = {
                 action: isEditing ? 'edit' : 'add',
@@ -166,24 +185,37 @@
                 photo: document.getElementById('f-photo').value,
                 desc: document.getElementById('f-desc').value
             };
-            tg.MainButton.setText("Сохранение...").show();
-            // Ключевое исправление: mode: 'no-cors'
-            await fetch(WRITE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+            
+            tg.MainButton.setText("Выполнение...").show();
+            
+            // mode: 'no-cors' критически важен, чтобы запрос не висел
+            await fetch(WRITE_URL, { 
+                method: 'POST', 
+                mode: 'no-cors', 
+                body: JSON.stringify(data) 
+            });
+
             setTimeout(() => { location.reload(); }, 600);
         }
 
+        // 6. Удаление
         async function deletePost(name) {
             if (!confirm(`Удалить "${name}"?`)) return;
+            
             tg.MainButton.setText("Удаление...").show();
-            // Ключевое исправление: mode: 'no-cors'
-            await fetch(WRITE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({action: 'delete', name: name}) });
+            
+            await fetch(WRITE_URL, { 
+                method: 'POST', 
+                mode: 'no-cors', 
+                body: JSON.stringify({action: 'delete', name: name}) 
+            });
+
             setTimeout(() => { location.reload(); }, 600);
         }
 
         function closeForm() { document.getElementById('post-form').style.display = 'none'; }
+
         loadData();
     </script>
 </body>
 </html>
-
-
