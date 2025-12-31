@@ -87,7 +87,7 @@
         let oldName = "";
         let isAdmin = false;
 
-        if (tg.initDataUnsafe.user && tg.initDataUnsafe.user.id === MY_ADMIN_ID) {
+        if (tg.initDataUnsafe.user && ADMIN_IDS.includes(tg.initDataUnsafe.user.id)) {
             isAdmin = true;
             document.getElementById('admin-btn').style.display = 'block';
         }
@@ -185,4 +185,5 @@
     </script>
 </body>
 </html>
+
 
