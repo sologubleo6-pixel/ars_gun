@@ -76,49 +76,58 @@
         tg.ready();
         tg.expand();
 
-        // 1. ССЫЛКА НА CSV (ОБЯЗАТЕЛЬНО проверьте кнопку "Опубликовать")
-        const READ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU32ejIBvBjA7CHetO52InIBmTUmKug758-lrApf_4NSoG-Egg0QojyavxRHbvMU4GOGQmQWPVrhFU/pub?gid=0&single=true&output=csv'; 
-        // 2. ССЫЛКА НА СКРИПТ (EXEC)
-        const WRITE_URL = 'https://script.google.com/macros/s/AKfycbxu1DkZb2ZY85neMdVq4RySEIHBV8QwZT_gyUNwZ4pUPAgPazNI6lZLPtZkiyfcqV7xTw/exec'; 
-        // 3. ВАШИ ID
-        const ADMIN_IDS = [6606101996, 461880012]; 
+        // 1. Ссылка на doGet Google Apps Script (JSON)
+        const READ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU32ejIBvBjA7CHetO52InIBmTUmKug758-lrApf_4NSoG-Egg0QojyavxRHbvMU4GOGQmQWPVrhFU/pub?gid=0&single=true&output=csv';
+        // 2. Ссылка на doPost Google Apps Script
+        const WRITE_URL = 'https://script.google.com/macros/s/AKfycbyR896_XjCGB4c0qPnDVdPUWj-H3ZrkhfhoiR21gYfQOyiz-0F_2Z9fymdsO2Mps26B_Q/exec';
+        // 3. Ваши ID админов
+        const ADMIN_IDS = [6606101996, 461880012];
 
         let isAdmin = false;
         let isEditing = false;
         let oldName = "";
 
+        // Проверка админа
         if (tg.initDataUnsafe.user && ADMIN_IDS.includes(tg.initDataUnsafe.user.id)) {
             isAdmin = true;
             document.getElementById('admin-btn').style.display = 'block';
         }
 
+        // Функция для экранирования текста
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         async function loadData() {
             try {
-                // Прямой запрос без лишних заголовков для обхода CORS
                 const response = await fetch(READ_URL + "?cache=" + Math.random());
-                if (!response.ok) throw new Error();
-                const text = await response.text();
-                
-                const rows = text.split(/\r?\n/).filter(line => line.trim() !== "").slice(1);
-                const containers = {'новости':'feed-list', 'порох':'powder-list', 'патроны':'ammo-list', 'оружие':'guns-list', 'комиссионка':'comm-list'};
-                
+                if (!response.ok) throw new Error('Ошибка загрузки данных');
+                const posts = await response.json();
+
+                const containers = {
+                    'новости':'feed-list',
+                    'порох':'powder-list',
+                    'патроны':'ammo-list',
+                    'оружие':'guns-list',
+                    'комиссионка':'comm-list'
+                };
+
                 Object.values(containers).forEach(id => document.getElementById(id).innerHTML = '');
 
-                rows.forEach(row => {
-                    const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                    if (cols.length < 2) return;
-
-                    const cat = cols[0].replace(/"/g, '').trim().toLowerCase();
-                    const name = cols[1].replace(/"/g, '').trim();
-                    const price = cols[2] ? cols[2].replace(/"/g, '').trim() : '';
-                    const photo = cols[3] ? cols[3].replace(/"/g, '').trim() : '';
-                    const desc = cols[4] ? cols[4].replace(/"/g, '').trim() : '';
+                posts.forEach(post => {
+                    const cat = post.category.toLowerCase();
+                    const name = escapeHtml(post.name);
+                    const price = escapeHtml(post.price || '');
+                    const photo = post.photo ? escapeHtml(post.photo) : '';
+                    const desc = escapeHtml(post.desc || '');
 
                     let adminBlock = '';
                     if (isAdmin) {
                         adminBlock = `
                             <div class="admin-controls">
-                                <button class="btn-edit" onclick="openEditForm('${cols[0].trim()}','${name}','${price}','${photo}','${desc.replace(/'/g, "\\'")}')">Править</button>
+                                <button class="btn-edit" onclick="openEditForm('${cat}','${name}','${price}','${photo}','${desc}')">Править</button>
                                 <button class="btn-delete" onclick="deletePost('${name}')">Удалить</button>
                             </div>`;
                     }
@@ -133,12 +142,13 @@
                                 ${adminBlock}
                             </div>
                         </div>`;
-                    
-                    if (containers[cat]) document.getElementById(containers[cat]).innerHTML += card;
+
+                    if (containers[cat]) {
+                        document.getElementById(containers[cat]).innerHTML += card;
+                    }
                 });
             } catch (e) {
-                // Если ошибка осталась, значит Google еще не открыл доступ по CORS
-                console.error("Fetch error", e);
+                console.error('Ошибка загрузки ленты:', e);
             }
         }
 
@@ -146,12 +156,26 @@
             document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active'));
             document.getElementById(p).classList.add('active');
             if (p === 'feed') tg.BackButton.hide();
-            else { tg.BackButton.show(); tg.BackButton.offClick(); tg.BackButton.onClick(() => showPage('feed')); }
+            else {
+                tg.BackButton.show();
+                tg.BackButton.offClick();
+                tg.BackButton.onClick(() => showPage('feed'));
+            }
         }
 
-        function openAddForm() { isEditing = false; document.getElementById('post-form').style.display = 'block'; }
+        function openAddForm() {
+            isEditing = false;
+            document.getElementById('f-cat').value = 'Новости';
+            document.getElementById('f-name').value = '';
+            document.getElementById('f-price').value = '';
+            document.getElementById('f-photo').value = '';
+            document.getElementById('f-desc').value = '';
+            document.getElementById('post-form').style.display = 'block';
+        }
+
         function openEditForm(cat, name, price, photo, desc) {
-            isEditing = true; oldName = name;
+            isEditing = true;
+            oldName = name;
             document.getElementById('f-cat').value = cat;
             document.getElementById('f-name').value = name;
             document.getElementById('f-price').value = price;
@@ -171,19 +195,21 @@
                 photo: document.getElementById('f-photo').value,
                 desc: document.getElementById('f-desc').value
             };
-            await fetch(WRITE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-            setTimeout(() => location.reload(), 1000);
+            await fetch(WRITE_URL, { method: 'POST', body: JSON.stringify(data) });
+            setTimeout(() => location.reload(), 800);
         }
 
         async function deletePost(name) {
             if (!confirm(`Удалить "${name}"?`)) return;
             tg.MainButton.setText("Удаление...").show();
-            await fetch(WRITE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({action: 'delete', name: name}) });
-            setTimeout(() => location.reload(), 1000);
+            await fetch(WRITE_URL, { method: 'POST', body: JSON.stringify({action: 'delete', name: name}) });
+            setTimeout(() => location.reload(), 800);
         }
 
-        function closeForm() { document.getElementById('post-form').style.display = 'none'; }
-        
+        function closeForm() {
+            document.getElementById('post-form').style.display = 'none';
+        }
+
         loadData();
     </script>
 </body>
