@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 :root { 
@@ -22,18 +22,14 @@ body { font-family: sans-serif; background: linear-gradient(135deg,#f6f8ff,#e6eb
 .item-title { font-size: 18px; font-weight: bold; display: block; margin-bottom: 5px; }
 .item-date { font-size: 12px; color: var(--tg-hint); margin-bottom: 5px; }
 .item-desc { font-size: 14px; white-space: pre-wrap; }
-
 .admin-controls { display: flex; gap: 10px; margin-top: 15px; }
 .btn-edit { background: var(--tg-link); color: white; border: none; padding: 10px; border-radius: 8px; flex: 1; font-weight: bold; }
 .btn-delete { background: #ff4444; color: white; border: none; padding: 10px; border-radius: 8px; flex: 1; font-weight: bold; }
-
 #admin-btn { position: fixed; top: 15px; right: 15px; z-index: 1001; display: none; background: #ff4444; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-
 .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 75px; background: var(--tg-secondary-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(0,0,0,0.1); z-index: 1000; }
 .tab-item { text-align: center; font-size: 11px; flex: 1; color: var(--tg-hint); cursor: pointer; }
 .tab-item.active { color: var(--tg-link); font-weight: bold; }
 .tab-item .icon { font-size: 24px; display: block; margin-bottom: 4px; }
-
 .form-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--tg-bg); z-index: 2000; padding: 20px; overflow-y: auto; }
 input, textarea, select { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 10px; background: var(--tg-secondary-bg); color: var(--tg-text); font-size: 16px; box-sizing: border-box; }
 </style>
@@ -42,14 +38,12 @@ input, textarea, select { width: 100%; padding: 12px; margin-bottom: 10px; borde
 
 <button id="admin-btn" onclick="openAddForm()">+</button>
 
-<!-- Страницы -->
 <div id="feed" class="page active"><h2>🔥 Лента</h2><div id="feed-list"></div></div>
 <div id="powder" class="page"><h2>🧪 Порох</h2><div id="powder-list"></div></div>
 <div id="ammo" class="page"><h2>🔫 Патроны</h2><div id="ammo-list"></div></div>
 <div id="guns" class="page"><h2>🧰 Оружие</h2><div id="guns-list"></div></div>
 <div id="commission" class="page"><h2>♻️ Комиссионка</h2><div id="comm-list"></div></div>
 
-<!-- Форма -->
 <div id="post-form" class="form-overlay">
     <h3 id="form-title">Новый пост</h3>
     <select id="f-cat">
@@ -67,7 +61,6 @@ input, textarea, select { width: 100%; padding: 12px; margin-bottom: 10px; borde
     <button onclick="closeForm()" style="width:100%; margin-top:10px; background:none; border:none; color:var(--tg-hint);">Отмена</button>
 </div>
 
-<!-- Табы -->
 <div class="tab-bar">
     <div class="tab-item active" onclick="showPage('feed',this)"><span class="icon">🏠</span>Лента</div>
     <div class="tab-item" onclick="showPage('powder',this)"><span class="icon">🧪</span>Порох</div>
@@ -81,15 +74,13 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// Ссылки на Apps Script
 const READ_URL = 'https://script.google.com/macros/s/AKfycbxEGDonE5hBx86cySoCV0BSYrOrPz0e8XuVoMGh-fMLGaA5Z_m_kaMh2U-x5szeizRjGA/exec';
 const WRITE_URL = 'https://script.google.com/macros/s/AKfycbxEGDonE5hBx86cySoCV0BSYrOrPz0e8XuVoMGh-fMLGaA5Z_m_kaMh2U-x5szeizRjGA/exec';
+const ADMIN_IDS = [6606101996,461880012]; // Ваш Telegram ID
 
-// Админы
-const ADMIN_IDS = [6606101996,461880012]; // <- твой ID
-let isAdmin = false, isEditing=false, oldName='';
+let isAdmin=false,isEditing=false,oldName='';
 
-if(tg.initDataUnsafe.user && ADMIN_IDS.includes(tg.initDataUnsafe.user.id)){
+if(tg.initDataUnsafe.user && ADMIN_IDS.includes(Number(tg.initDataUnsafe.user.id))){
     isAdmin = true;
     document.getElementById('admin-btn').style.display='block';
 }
@@ -98,18 +89,17 @@ async function loadData(){
     const res = await fetch(READ_URL+"?cache="+Date.now());
     const rows = await res.json();
     const containers = {'новости':'feed-list','порох':'powder-list','патроны':'ammo-list','оружие':'guns-list','комиссионка':'comm-list'};
-
     Object.values(containers).forEach(id=>document.getElementById(id).innerHTML='');
     rows.reverse().forEach(r=>{
         const [cat,name,price,photo,desc,date] = r;
         let adminBlock='';
         if(isAdmin){
-            adminBlock = `<div class="admin-controls">
+            adminBlock=`<div class="admin-controls">
                 <button class="btn-edit" onclick="openEditForm('${cat}','${name}','${price}','${photo}','${desc.replace(/'/g,"\\'")}')">Править</button>
                 <button class="btn-delete" onclick="deletePost('${name}')">Удалить</button>
             </div>`;
         }
-        const card = `<div class="item-card">
+        const card=`<div class="item-card">
             ${photo?`<img src="${photo}">`:''}
             <div class="item-info">
                 ${price?`<span class="item-price">${price} ₽</span>`:''}
@@ -119,7 +109,7 @@ async function loadData(){
                 ${adminBlock}
             </div>
         </div>`;
-        if(containers[cat.toLowerCase()]) document.getElementById(containers[cat.toLowerCase()]).innerHTML += card;
+        if(containers[cat.toLowerCase()]) document.getElementById(containers[cat.toLowerCase()]).innerHTML+=card;
     });
 }
 
@@ -130,20 +120,19 @@ function showPage(id,el){
     el.classList.add('active');
 }
 
-function openAddForm(){ isEditing=false; post-form.style.display='block'; }
+function openAddForm(){isEditing=false;post-form.style.display='block';}
 function openEditForm(cat,name,price,photo,desc){
     isEditing=true; oldName=name;
     f-cat.value=cat; f-name.value=name; f-price.value=price; f-desc.value=desc;
     post-form.style.display='block';
 }
-
-function closeForm(){ post-form.style.display='none'; }
+function closeForm(){post-form.style.display='none';}
 
 async function submitData(){
     let base64='',type='';
-    const file = f-photo-file.files[0];
+    const file=f-photo-file.files[0];
     if(file){type=file.type;base64=await toBase64(file);}
-    const data = {action:isEditing?'edit':'add',oldName,category:f-cat.value,name:f-name.value,price:f-price.value,desc:f-desc.value,photoBase64:base64,photoType:type};
+    const data={action:isEditing?'edit':'add',oldName,category:f-cat.value,name:f-name.value,price:f-price.value,desc:f-desc.value,photoBase64:base64,photoType:type};
     await fetch(WRITE_URL,{method:'POST',body:JSON.stringify(data)});
     location.reload();
 }
