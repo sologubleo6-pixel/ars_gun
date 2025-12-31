@@ -2,47 +2,104 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Инфо-Центр</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; background-color: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); margin: 0; padding: 20px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .card { 
-            background: var(--tg-theme-secondary-bg-color); 
-            padding: 20px; border-radius: 12px; text-align: center; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer;
+        :root {
+            --tg-bg: var(--tg-theme-bg-color, #ffffff);
+            --tg-text: var(--tg-theme-text-color, #000000);
+            --tg-hint: var(--tg-theme-hint-color, #999999);
+            --tg-link: var(--tg-theme-link-color, #248bed);
         }
-        .card h3 { margin: 10px 0 0 0; }
-        .icon { font-size: 40px; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--tg-bg);
+            color: var(--tg-text);
+            margin: 0; padding: 0;
+            padding-bottom: 80px; /* Место под нижнее меню */
+        }
+        header { padding: 15px; border-bottom: 1px solid rgba(0,0,0,0.1); }
+        
+        /* Лента постов */
+        .feed { padding: 10px; }
+        .post {
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .post img { width: 100%; height: 200px; object-fit: cover; }
+        .post-content { padding: 12px; }
+        .post-title { font-weight: bold; margin-bottom: 5px; }
+        .post-desc { font-size: 14px; color: var(--tg-hint); }
+
+        /* Фиксированное меню внизу */
+        .tab-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 65px;
+            background: var(--tg-theme-secondary-bg-color, #f8f8f8);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        .tab-item {
+            text-align: center;
+            font-size: 11px;
+            color: var(--tg-hint);
+            text-decoration: none;
+            flex: 1;
+        }
+        .tab-item .icon { font-size: 20px; display: block; margin-bottom: 2px; }
+        .tab-item.active { color: var(--tg-link); }
     </style>
 </head>
 <body>
-    <h2>Категории товаров</h2>
-    <div class="grid">
-        <div class="card" onclick="alert('Раздел Порох в разработке')">
-            <div class="icon">🧪</div>
-            <h3>Порох</h3>
+
+    <header>
+        <h2>Свежее поступление</h2>
+    </header>
+
+    <div class="feed">
+        <div class="post">
+            <img src="https://via.placeholder.com/400x200?text=Порох+Сунар" alt="фото">
+            <div class="post-content">
+                <div class="post-title">Поступление пороха Сунар-308</div>
+                <div class="post-desc">Партия 4/23, свежий завоз. Количество ограничено.</div>
+            </div>
         </div>
-        <div class="card" onclick="alert('Раздел Патроны в разработке')">
-            <div class="icon">🔫</div>
-            <h3>Патроны</h3>
+
+        <div class="post">
+            <img src="https://via.placeholder.com/400x200?text=Патроны+9мм" alt="фото">
+            <div class="post-content">
+                <div class="post-title">Патроны 9х19 Luger</div>
+                <div class="post-desc">Снова в наличии во всех магазинах сети.</div>
+            </div>
         </div>
-        <div class="card" onclick="alert('Раздел Оружие в разработке')">
-            <div class="icon">🧰</div>
-            <h3>Оружие</h3>
+    </div>
+
+    <div class="tab-bar">
+        <div class="tab-item active" onclick="location.reload()">
+            <span class="icon">🏠</span>Лента
         </div>
-        <div class="card" onclick="alert('Раздел Комиссионка в разработке')">
-            <div class="icon">♻️</div>
-            <h3>Комиссионка</h3>
+        <div class="tab-item" onclick="alert('Открываем Порох')">
+            <span class="icon">🧪</span>Порох
+        </div>
+        <div class="tab-item" onclick="alert('Открываем Патроны')">
+            <span class="icon">🔫</span>Патроны
+        </div>
+        <div class="tab-item" onclick="alert('Еще...')">
+            <span class="icon">⚙️</span>Меню
         </div>
     </div>
 
     <script>
-        // Сообщаем Telegram, что приложение готово
         const tg = window.Telegram.WebApp;
         tg.ready();
-        tg.expand(); // Разворачиваем на весь экран
+        tg.expand();
     </script>
 </body>
 </html>
