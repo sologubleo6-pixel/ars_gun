@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Инфо-Центр</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: sans-serif; background-color: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); margin: 0; padding: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card { 
+            background: var(--tg-theme-secondary-bg-color); 
+            padding: 20px; border-radius: 12px; text-align: center; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer;
+        }
+        .card h3 { margin: 10px 0 0 0; }
+        .icon { font-size: 40px; }
+    </style>
+</head>
+<body>
+    <h2>Категории товаров</h2>
+    <div class="grid">
+        <div class="card" onclick="alert('Раздел Порох в разработке')">
+            <div class="icon">🧪</div>
+            <h3>Порох</h3>
+        </div>
+        <div class="card" onclick="alert('Раздел Патроны в разработке')">
+            <div class="icon">🔫</div>
+            <h3>Патроны</h3>
+        </div>
+        <div class="card" onclick="alert('Раздел Оружие в разработке')">
+            <div class="icon">🧰</div>
+            <h3>Оружие</h3>
+        </div>
+        <div class="card" onclick="alert('Раздел Комиссионка в разработке')">
+            <div class="icon">♻️</div>
+            <h3>Комиссионка</h3>
+        </div>
+    </div>
+
+    <script>
+        // Сообщаем Telegram, что приложение готово
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand(); // Разворачиваем на весь экран
+    </script>
+</body>
+</html>
