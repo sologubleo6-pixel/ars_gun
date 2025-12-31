@@ -12,32 +12,33 @@
             --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #f0f0f0); 
             --tg-hint: var(--tg-theme-hint-color, #999999);
         }
-        body { font-family: sans-serif; background: var(--tg-bg); color: var(--tg-text); margin: 0; padding-bottom: 100px; -webkit-user-select: none; }
+        body { font-family: sans-serif; background: var(--tg-bg); color: var(--tg-text); margin: 0; padding-bottom: 100px; }
+        
         .page { display: none; padding: 15px; }
         .page.active { display: block; }
 
-        /* Карточки */
-        .item-card { background: var(--tg-secondary-bg); border-radius: 15px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.05); }
-        .item-card img { width: 100%; max-height: 280px; object-fit: cover; display: block; background: #ddd; }
+        /* Карточки товаров */
+        .item-card { background: var(--tg-secondary-bg); border-radius: 15px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .item-card img { width: 100%; max-height: 250px; object-fit: cover; background: #eee; }
         .item-info { padding: 15px; }
-        .item-price { background: var(--tg-link); color: white; padding: 5px 12px; border-radius: 7px; font-weight: bold; display: inline-block; margin-bottom: 8px; font-size: 14px; }
+        .item-price { background: var(--tg-link); color: white; padding: 5px 12px; border-radius: 7px; font-weight: bold; display: inline-block; margin-bottom: 8px; }
         .item-title { font-size: 18px; font-weight: bold; display: block; margin-bottom: 5px; }
-        .item-desc { font-size: 14px; line-height: 1.4; white-space: pre-wrap; margin: 5px 0; }
 
-        /* Админка */
-        .admin-controls { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px; }
+        /* Кнопки админа */
+        .admin-controls { display: none; gap: 10px; margin-top: 15px; }
         .btn-edit { background: var(--tg-link); color: white; border: none; padding: 10px; border-radius: 8px; flex: 1; font-weight: bold; }
         .btn-delete { background: #ff4444; color: white; border: none; padding: 10px; border-radius: 8px; flex: 1; font-weight: bold; }
         #admin-btn { position: fixed; top: 15px; right: 15px; z-index: 1001; display: none; background: #ff4444; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 
-        /* Таб-бар */
-        .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 80px; background: var(--tg-secondary-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(0,0,0,0.1); z-index: 1000; }
-        .tab-item { text-align: center; font-size: 11px; flex: 1; color: var(--tg-hint); text-decoration: none; }
-        .tab-item .icon { font-size: 26px; display: block; margin-bottom: 4px; }
+        /* Навигация */
+        .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 75px; background: var(--tg-secondary-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(0,0,0,0.1); z-index: 1000; }
+        .tab-item { text-align: center; font-size: 11px; flex: 1; color: var(--tg-hint); cursor: pointer; }
+        .tab-item.active { color: var(--tg-link); font-weight: bold; }
+        .tab-item .icon { font-size: 24px; display: block; margin-bottom: 4px; }
 
         /* Форма */
         .form-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--tg-bg); z-index: 2000; padding: 20px; overflow-y: auto; }
-        input, textarea, select { width: 100%; padding: 14px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 10px; background: var(--tg-secondary-bg); color: var(--tg-text); font-size: 16px; box-sizing: border-box; outline: none; }
+        input, textarea, select { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 10px; background: var(--tg-secondary-bg); color: var(--tg-text); font-size: 16px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -62,13 +63,13 @@
         <input type="text" id="f-name" placeholder="Название">
         <input type="text" id="f-price" placeholder="Цена">
         <input type="text" id="f-photo" placeholder="Ссылка на фото">
-        <textarea id="f-desc" rows="5" placeholder="Описание"></textarea>
-        <button onclick="submitData()" style="width:100%; background:var(--tg-link); color:white; padding:16px; border:none; border-radius:10px; font-weight:bold;">СОХРАНИТЬ</button>
+        <textarea id="f-desc" rows="4" placeholder="Описание"></textarea>
+        <button onclick="submitData()" style="width:100%; background:var(--tg-link); color:white; padding:15px; border:none; border-radius:10px; font-weight:bold;">СОХРАНИТЬ</button>
         <button onclick="closeForm()" style="width:100%; margin-top:10px; background:none; border:none; color:var(--tg-hint);">Отмена</button>
     </div>
 
     <div class="tab-bar">
-        <div class="tab-item" onclick="showPage('feed')"><span class="icon">🏠</span>Главная</div>
+        <div class="tab-item" onclick="showPage('feed')"><span class="icon">🏠</span>Лента</div>
         <div class="tab-item" onclick="showPage('powder')"><span class="icon">🧪</span>Порох</div>
         <div class="tab-item" onclick="showPage('ammo')"><span class="icon">🔫</span>Патроны</div>
         <div class="tab-item" onclick="showPage('guns')"><span class="icon">🧰</span>Оружие</div>
@@ -81,15 +82,17 @@
         tg.expand();
 
         // НАСТРОЙКИ
-        const READ_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU32ejIBvBjA7CHetO52InIBmTUmKug758-lrApf_4NSoG-Egg0QojyavxRHbvMU4GOGQmQWPVrhFU/pub?gid=0&single=true&output=csv'; 
+        const RAW_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU32ejIBvBjA7CHetO52InIBmTUmKug758-lrApf_4NSoG-Egg0QojyavxRHbvMU4GOGQmQWPVrhFU/pub?gid=0&single=true&output=csv'; // Та, что заканчивается на output=csv
         const WRITE_URL = 'https://script.google.com/macros/s/AKfycbw6ulfE7N417pE_adfdkVjp0cFzc4WV58wSSC8cr1ATleTehlDqWKCNC3PRTjFaeBUZ6g/exec'; 
-        const ADMIN_IDS = [6606101996, 461880012]; // ТВОИ ID ЧЕРЕЗ ЗАПЯТУЮ
+        const ADMIN_IDS = [461880012, 6606101996]; // Ваши ID через запятую
+
+        // Используем прокси для обхода ошибки Failed to fetch
+        const READ_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(RAW_CSV_URL);
 
         let isAdmin = false;
         let isEditing = false;
         let oldName = "";
 
-        // Проверка прав
         if (tg.initDataUnsafe.user && ADMIN_IDS.includes(tg.initDataUnsafe.user.id)) {
             isAdmin = true;
             document.getElementById('admin-btn').style.display = 'block';
@@ -97,64 +100,54 @@
 
         async function loadData() {
             try {
-                const response = await fetch(READ_URL + "?nocache=" + new Date().getTime());
-                const csvText = await response.text();
-                const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== "");
-                const dataLines = lines.slice(1); // Убираем заголовки
-
-                const containers = {
-                    'новости': 'feed-list',
-                    'порох': 'powder-list',
-                    'патроны': 'ammo-list',
-                    'оружие': 'guns-list',
-                    'комиссионка': 'comm-list'
-                };
-
-                // Чистим всё перед отрисовкой
+                const resp = await fetch(READ_URL);
+                if (!resp.ok) throw new Error("Ошибка сети");
+                const text = await resp.text();
+                
+                const rows = text.split(/\r?\n/).filter(line => line.trim() !== "").slice(1);
+                const containers = {'новости':'feed-list', 'порох':'powder-list', 'патроны':'ammo-list', 'оружие':'guns-list', 'комиссионка':'comm-list'};
+                
                 Object.values(containers).forEach(id => document.getElementById(id).innerHTML = '');
 
-                dataLines.forEach(line => {
-                    // Корректно разбиваем CSV с учетом кавычек
-                    const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                    if (parts.length < 2) return;
+                rows.forEach(row => {
+                    const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                    if (cols.length < 2) return;
 
-                    const cat = parts[0].replace(/"/g, '').trim().toLowerCase();
-                    const name = parts[1].replace(/"/g, '').trim();
-                    const price = parts[2] ? parts[2].replace(/"/g, '').trim() : '';
-                    const photo = parts[3] ? parts[3].replace(/"/g, '').trim() : '';
-                    const desc = parts[4] ? parts[4].replace(/"/g, '').trim() : '';
+                    const cat = cols[0].replace(/"/g, '').trim().toLowerCase();
+                    const name = cols[1].replace(/"/g, '').trim();
+                    const price = cols[2] ? cols[2].replace(/"/g, '').trim() : '';
+                    const photo = cols[3] ? cols[3].replace(/"/g, '').trim() : '';
+                    const desc = cols[4] ? cols[4].replace(/"/g, '').trim() : '';
 
-                    let adminUI = '';
+                    let adminControls = '';
                     if (isAdmin) {
-                        adminUI = `
-                            <div class="admin-controls">
-                                <button class="btn-edit" onclick="openEditForm('${parts[0].trim()}','${name}','${price}','${photo}','${desc.replace(/'/g, "\\'")}')">Править</button>
+                        adminControls = `
+                            <div class="admin-controls" style="display:flex;">
+                                <button class="btn-edit" onclick="openEditForm('${cols[0].trim()}','${name}','${price}','${photo}','${desc.replace(/'/g, "\\'")}')">Править</button>
                                 <button class="btn-delete" onclick="deletePost('${name}')">Удалить</button>
                             </div>`;
                     }
 
-                    const cardHtml = `
+                    const card = `
                         <div class="item-card">
                             ${photo ? `<img src="${photo}" onerror="this.style.display='none'">` : ''}
                             <div class="item-info">
                                 ${price ? `<span class="item-price">${price} ₽</span>` : ''}
                                 <span class="item-title">${name}</span>
-                                <p class="item-desc">${desc}</p>
-                                ${adminUI}
+                                <p style="font-size:14px; margin:5px 0; white-space:pre-wrap;">${desc}</p>
+                                ${adminControls}
                             </div>
                         </div>`;
-
-                    if (containers[cat]) {
-                        document.getElementById(containers[cat]).innerHTML += cardHtml;
-                    }
+                    
+                    if (containers[cat]) document.getElementById(containers[cat]).innerHTML += card;
                 });
-            } catch (err) {
-                alert("Ошибка загрузки: " + err);
+            } catch (e) {
+                alert("Ошибка загрузки данных. Проверьте публикацию таблицы.");
             }
         }
 
         function showPage(p) {
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.querySelectorAll('.page').forEach(pg => pg.classList.remove('active'));
             document.getElementById(p).classList.add('active');
             if (p === 'feed') tg.BackButton.hide();
             else { tg.BackButton.show(); tg.BackButton.offClick(); tg.BackButton.onClick(() => showPage('feed')); }
@@ -168,8 +161,7 @@
         }
 
         function openEditForm(cat, name, price, photo, desc) {
-            isEditing = true;
-            oldName = name;
+            isEditing = true; oldName = name;
             document.getElementById('form-title').innerText = "Редактирование";
             document.getElementById('f-cat').value = cat;
             document.getElementById('f-name').value = name;
@@ -180,10 +172,8 @@
         }
 
         async function submitData() {
-            const btn = tg.MainButton;
-            btn.setText("Сохранение...").show();
-
-            const payload = {
+            tg.MainButton.setText("Сохранение...").show();
+            const data = {
                 action: isEditing ? 'edit' : 'add',
                 oldName: oldName,
                 category: document.getElementById('f-cat').value,
@@ -192,23 +182,20 @@
                 photo: document.getElementById('f-photo').value,
                 desc: document.getElementById('f-desc').value
             };
-
-            await fetch(WRITE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-            
-            setTimeout(() => { location.reload(); }, 700);
+            await fetch(WRITE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+            setTimeout(() => { location.reload(); }, 800);
         }
 
         async function deletePost(name) {
             if (!confirm(`Удалить "${name}"?`)) return;
             tg.MainButton.setText("Удаление...").show();
             await fetch(WRITE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({action: 'delete', name: name}) });
-            setTimeout(() => { location.reload(); }, 700);
+            setTimeout(() => { location.reload(); }, 800);
         }
 
         function closeForm() { document.getElementById('post-form').style.display = 'none'; }
-
+        
         loadData();
     </script>
 </body>
 </html>
-
