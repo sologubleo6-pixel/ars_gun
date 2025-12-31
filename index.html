@@ -12,26 +12,30 @@
             --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #ffffff); 
             --tg-hint: var(--tg-theme-hint-color, #888);
         }
-        body { font-family: sans-serif; background: var(--tg-bg); color: var(--tg-text); margin: 0; padding-bottom: 100px; }
+        body { font-family: sans-serif; background: var(--tg-bg); color: var(--tg-text); margin: 0; padding-bottom: 80px; }
         .page { display: none; padding: 15px; }
         .page.active { display: block; }
         .item-card { background: var(--tg-secondary-bg); border-radius: 15px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .item-card img { width: 100%; max-height: 250px; object-fit: cover; background: #eee; }
+        .item-card img { width: 100%; max-height: 350px; object-fit: cover; display: block; background: #eee; }
         .item-info { padding: 15px; }
         .item-price { background: var(--tg-link); color: white; padding: 5px 12px; border-radius: 7px; font-weight: bold; display: inline-block; margin-bottom: 8px; }
         .item-title { font-size: 18px; font-weight: bold; display: block; margin-bottom: 5px; }
-        .item-desc { font-size: 14px; white-space: pre-wrap; margin-bottom: 10px; }
-        .item-date { font-size: 12px; color: var(--tg-hint); }
-        .admin-controls { display: flex; gap: 10px; margin-top: 15px; }
-        .btn-edit { background: var(--tg-link); color: white; border: none; padding: 10px; border-radius: 8px; flex: 1; font-weight: bold; }
-        .btn-delete { background: #ff4444; color: white; border: none; padding: 10px; border-radius: 8px; flex: 1; font-weight: bold; }
-        #admin-btn { position: fixed; top: 15px; right: 15px; z-index: 1001; display: none; background: #ff4444; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 75px; background: var(--tg-secondary-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(0,0,0,0.1); z-index: 1000; }
-        .tab-item { text-align: center; font-size: 11px; flex: 1; color: var(--tg-hint); cursor: pointer; }
+        .item-desc { font-size: 14px; white-space: pre-wrap; line-height: 1.4; }
+        .item-date { font-size: 11px; color: var(--tg-hint); margin-top: 10px; text-align: right; }
+        
+        .admin-controls { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
+        .btn-edit { background: var(--tg-link); color: white; border: none; padding: 8px; border-radius: 8px; flex: 1; }
+        .btn-delete { background: #ff4444; color: white; border: none; padding: 8px; border-radius: 8px; flex: 1; }
+
+        #admin-btn { position: fixed; top: 15px; right: 15px; z-index: 1001; display: none; background: #ff4444; color: white; border: none; border-radius: 50%; width: 55px; height: 55px; font-size: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+
+        .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: var(--tg-secondary-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(0,0,0,0.1); z-index: 1000; }
+        .tab-item { text-align: center; font-size: 11px; color: var(--tg-hint); cursor: pointer; flex: 1; }
         .tab-item.active { color: var(--tg-link); font-weight: bold; }
-        .tab-item .icon { font-size: 24px; display: block; margin-bottom: 4px; }
+        .tab-item .icon { font-size: 22px; display: block; margin-bottom: 3px; }
+
         .form-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--tg-bg); z-index: 2000; padding: 20px; overflow-y: auto; }
-        input, textarea, select { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 10px; background: var(--tg-secondary-bg); color: var(--tg-text); font-size: 16px; box-sizing: border-box; }
+        input, textarea, select { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -56,8 +60,8 @@
     <input type="text" id="f-name" placeholder="Название">
     <input type="text" id="f-price" placeholder="Цена">
     <input type="file" id="f-photo-file" accept="image/*">
-    <textarea id="f-desc" rows="4" placeholder="Описание"></textarea>
-    <button id="save-btn" onclick="submitData()" style="width:100%; background:var(--tg-link); color:white; padding:15px; border:none; border-radius:10px; font-weight:bold;">СОХРАНИТЬ</button>
+    <textarea id="f-desc" rows="5" placeholder="Описание"></textarea>
+    <button id="save-btn" onclick="submitData()" style="width:100%; background:var(--tg-link); color:white; padding:16px; border:none; border-radius:12px; font-weight:bold;">ОПУБЛИКОВАТЬ</button>
     <button onclick="closeForm()" style="width:100%; margin-top:10px; background:none; border:none; color:var(--tg-hint);">Отмена</button>
 </div>
 
@@ -74,46 +78,66 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// === НАСТРОЙКИ ===
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbweXaqKiQbdDdEDG4-3FGP6jM6jeKrcmjcaQ1ERlmF9oUyRzWw2Q_w7t84va7eLN-fcpQ/exec'; 
+// === НАСТРОЙКИ (ЗАПОЛНИ ИХ) ===
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzAjr_MD7NLeCM9-ZBF6e_hhqHmdVbcZAosGms4ghK4U6pk5Is7LmSC3ZLUnHIO0aj58w/exec'; 
 const IMGBB_API_KEY = 'bf9f77e41562609d9306b3e2540a0488'; 
 const ADMIN_IDS = [461880012,5033819205]; 
 
 let isAdmin=false, isEditing=false, oldName='', currentPhotoUrl='';
 
+// Проверка админа
 if(tg.initDataUnsafe.user && ADMIN_IDS.includes(Number(tg.initDataUnsafe.user.id))){
     isAdmin = true;
     document.getElementById('admin-btn').style.display='block';
 }
 
-async function loadData(){
-    const res = await fetch(WEB_APP_URL + "?action=read&t=" + Date.now());
-    const rows = await res.json();
-    const containers = {'новости':'feed-list','порох':'powder-list','патроны':'ammo-list','оружие':'guns-list','комиссионка':'comm-list'};
-    Object.values(containers).forEach(id=>document.getElementById(id).innerHTML='');
-    
-    rows.reverse().forEach(r=>{
-        const [cat,name,price,photo,desc,date] = r;
-        let adminBlock='';
-        if(isAdmin){
-            adminBlock=`<div class="admin-controls">
-                <button class="btn-edit" onclick="openEditForm('${cat}','${name.replace(/'/g,"\\'")}','${price}','${photo}','${desc ? desc.replace(/'/g,"\\'") : ""}')">Править</button>
-                <button class="btn-delete" onclick="deletePost('${name.replace(/'/g,"\\' text")}')">Удалить</button>
-            </div>`;
-        }
-        const card=`<div class="item-card">
-            ${photo ? `<img src="${photo}">` : ''}
-            <div class="item-info">
-                ${price ? `<span class="item-price">${price} ₽</span>` : ''}
-                <span class="item-title">${name}</span>
-                <p class="item-desc">${desc || ''}</p>
-                <div class="item-date">📅 ${new Date(date).toLocaleDateString()}</div>
-                ${adminBlock}
-            </div>
-        </div>`;
-        const key = cat ? cat.toLowerCase() : '';
-        if(containers[key]) document.getElementById(containers[key]).innerHTML+=card;
+// АВТОРЕГИСТРАЦИЯ ПОЛЬЗОВАТЕЛЯ ПРИ ВХОДЕ
+if (tg.initDataUnsafe.user) {
+    fetch(WEB_APP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({
+            action: 'register',
+            chatId: tg.initDataUnsafe.user.id
+        })
     });
+}
+
+async function loadData(){
+    try {
+        const res = await fetch(WEB_APP_URL + "?action=read&t=" + Date.now());
+        const rows = await res.json();
+        const containers = {'новости':'feed-list','порох':'powder-list','патроны':'ammo-list','оружие':'guns-list','комиссионка':'comm-list'};
+        Object.values(containers).forEach(id=>document.getElementById(id).innerHTML='');
+        
+        rows.forEach(r=>{
+            const [cat,name,price,photo,desc,date] = r;
+            let adminBlock='';
+            if(isAdmin){
+                const sName = name.replace(/'/g,"\\'");
+                const sDesc = desc ? desc.replace(/'/g,"\\'") : "";
+                adminBlock=`<div class="admin-controls">
+                    <button class="btn-edit" onclick="openEditForm('${cat}','${sName}','${price}','${photo}','${sDesc}')">Редактировать</button>
+                    <button class="btn-delete" onclick="deletePost('${sName}')">Удалить</button>
+                </div>`;
+            }
+            const card=`<div class="item-card">
+                ${photo ? `<img src="${photo}" loading="lazy">` : ''}
+                <div class="item-info">
+                    ${price ? `<span class="item-price">${price} ₽</span>` : ''}
+                    <span class="item-title">${name}</span>
+                    <p class="item-desc">${desc || ''}</p>
+                    <div class="item-date">${new Date(date).toLocaleString()}</div>
+                    ${adminBlock}
+                </div>
+            </div>`;
+            const key = cat ? cat.toLowerCase() : '';
+            if(containers[key]) document.getElementById(containers[key]).innerHTML+=card;
+        });
+
+        // Скролл вниз к новинкам
+        setTimeout(() => window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'}), 500);
+    } catch(e) { console.error("Ошибка загрузки:", e); }
 }
 
 function showPage(id,el){
@@ -121,15 +145,18 @@ function showPage(id,el){
     document.getElementById(id).classList.add('active');
     document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
     el.classList.add('active');
+    window.scrollTo(0, document.body.scrollHeight);
 }
 
 function openAddForm(){
     isEditing=false; currentPhotoUrl='';
+    document.getElementById('form-title').innerText = "Новый товар";
     document.getElementById('post-form').style.display='block';
 }
 
 function openEditForm(cat,name,price,photo,desc){
     isEditing=true; oldName=name; currentPhotoUrl=photo;
+    document.getElementById('form-title').innerText = "Редактирование";
     document.getElementById('f-cat').value=cat;
     document.getElementById('f-name').value=name;
     document.getElementById('f-price').value=price;
@@ -141,7 +168,7 @@ function closeForm(){ document.getElementById('post-form').style.display='none';
 
 async function submitData(){
     const btn = document.getElementById('save-btn');
-    btn.disabled = true; btn.innerText = "ЗАГРУЗКА ФОТО...";
+    btn.disabled = true; btn.innerText = "ЗАГРУЗКА...";
 
     const file = document.getElementById('f-photo-file').files[0];
     let photoUrl = currentPhotoUrl;
@@ -149,21 +176,11 @@ async function submitData(){
     if(file){
         const formData = new FormData();
         formData.append("image", file);
-        try {
-            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-                method: "POST",
-                body: formData
-            });
-            const json = await res.json();
-            photoUrl = json.data.url;
-        } catch(e) {
-            tg.showAlert("Ошибка ImgBB: " + e.message);
-            btn.disabled = false; btn.innerText = "СОХРАНИТЬ";
-            return;
-        }
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
+        const json = await res.json();
+        photoUrl = json.data.url;
     }
 
-    btn.innerText = "СОХРАНЕНИЕ В ТАБЛИЦУ...";
     const data={
         action: isEditing ? 'edit' : 'add',
         oldName,
@@ -174,22 +191,13 @@ async function submitData(){
         photo: photoUrl
     };
 
-    await fetch(WEB_APP_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify(data)
-    });
-    
+    await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
     location.reload();
 }
 
 async function deletePost(name){
     if(!confirm(`Удалить "${name}"?`)) return;
-    await fetch(WEB_APP_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify({action:'delete', name})
-    });
+    await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({action:'delete', name}) });
     location.reload();
 }
 
@@ -197,4 +205,3 @@ loadData();
 </script>
 </body>
 </html>
-
