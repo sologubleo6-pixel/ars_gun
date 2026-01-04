@@ -12,35 +12,41 @@
             --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #ffffff); 
             --tg-hint: var(--tg-theme-hint-color, #888);
         }
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--tg-bg); color: var(--tg-text); margin: 0; padding-bottom: 90px; }
+        body { font-family: -apple-system, sans-serif; background: var(--tg-bg); color: var(--tg-text); margin: 0; padding-bottom: 160px; }
         
         .page { display: none; padding: 15px; animation: fadeIn 0.3s; }
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* КАРТОЧКА И ГАЛЕРЕЯ */
+        /* ГАЛЕРЕЯ */
         .item-card { background: var(--tg-secondary-bg); border-radius: 16px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
         .gallery-wrapper { position: relative; width: 100%; background: #eee; }
         .gallery { display: flex; overflow-x: auto; snap-type: x mandatory; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
         .gallery::-webkit-scrollbar { display: none; }
         .gallery img { width: 100%; flex-shrink: 0; snap-align: start; max-height: 380px; object-fit: cover; }
         
-        .dots { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; pointer-events: none; }
+        .dots { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; }
         .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.5); }
         .dot.active { background: white; width: 8px; height: 8px; }
 
         .item-info { padding: 16px; }
         .item-price { background: var(--tg-link); color: white; padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 15px; display: inline-block; margin-bottom: 8px; }
         .item-title { font-size: 18px; font-weight: 800; display: block; margin-bottom: 6px; }
-        .item-desc { font-size: 14px; opacity: 0.9; line-height: 1.5; white-space: pre-wrap; margin-bottom: 10px;}
+        .item-desc { font-size: 14px; opacity: 0.9; line-height: 1.5; white-space: pre-wrap; }
+        
+        /* ДАТА */
+        .item-date { font-size: 11px; color: var(--tg-hint); margin-top: 10px; display: block; }
 
-        /* КНОПКИ */
-        .btn-contact { background: #f0f2f5; color: var(--tg-link); border: none; padding: 12px; border-radius: 12px; width: 100%; font-weight: bold; font-size: 14px; cursor: pointer; }
-        .admin-controls { display: flex; gap: 8px; margin-top: 15px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 15px; }
-        .btn-edit { background: #e3f2fd; color: #1976d2; border: none; padding: 10px; border-radius: 10px; flex: 1; font-weight: bold; }
-        .btn-delete { background: #ffebee; color: #d32f2f; border: none; padding: 10px; border-radius: 10px; flex: 1; font-weight: bold; }
+        /* АДМИН ПАНЕЛЬ */
+        .admin-controls { display: flex; gap: 8px; margin-top: 15px; border-top: 1px dotted #ccc; padding-top: 10px; }
+        .btn-edit { background: #e3f2fd; color: #1976d2; border: none; padding: 8px; border-radius: 8px; flex: 1; font-size: 12px; }
+        .btn-delete { background: #ffebee; color: #d32f2f; border: none; padding: 8px; border-radius: 8px; flex: 1; font-size: 12px; }
 
-        #admin-btn { position: fixed; bottom: 90px; right: 20px; z-index: 999; display: none; background: #ff4444; color: white; border: none; border-radius: 50%; width: 60px; height: 60px; font-size: 35px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        /* КНОПКА ВОПРОСА ВНИЗУ */
+        .sticky-support { position: fixed; bottom: 85px; left: 15px; right: 15px; z-index: 998; }
+        .support-btn { background: #28a745; color: white; border: none; padding: 14px; border-radius: 14px; width: 100%; font-weight: bold; font-size: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+        #admin-btn { position: fixed; bottom: 150px; right: 20px; z-index: 999; display: none; background: #ff4444; color: white; border: none; border-radius: 50%; width: 56px; height: 56px; font-size: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
 
         /* НАВИГАЦИЯ */
         .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 75px; background: var(--tg-secondary-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); z-index: 1000; }
@@ -50,7 +56,7 @@
 
         /* ФОРМА */
         .form-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--tg-bg); z-index: 2000; padding: 20px; overflow-y: auto; }
-        input, textarea, select { width: 100%; padding: 14px; margin-bottom: 15px; border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; font-size: 16px; box-sizing: border-box; background: var(--tg-secondary-bg); color: var(--tg-text); }
+        input, textarea, select { width: 100%; padding: 14px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #ddd; background: var(--tg-secondary-bg); color: var(--tg-text); font-size: 16px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -63,8 +69,12 @@
 <div id="guns" class="page"><h2>🧰 Оружие</h2><div id="guns-list"></div></div>
 <div id="commission" class="page"><h2>♻️ Б/У</h2><div id="comm-list"></div></div>
 
+<div class="sticky-support">
+    <button class="support-btn" onclick="askQuestion()">💬 Задать вопрос администратору</button>
+</div>
+
 <div id="post-form" class="form-overlay">
-    <h3 id="form-title">Добавить товар</h3>
+    <h3>Добавить товар</h3>
     <select id="f-cat">
         <option value="Новости">Лента</option>
         <option value="Порох">Порох</option>
@@ -73,12 +83,11 @@
         <option value="Комиссионка">Комиссионка</option>
     </select>
     <input type="text" id="f-name" placeholder="Название товара">
-    <input type="text" id="f-price" placeholder="Цена (только цифры)">
-    <p style="font-size: 12px; color: var(--tg-hint); margin-bottom: 5px;">Выбери одно или несколько фото:</p>
+    <input type="text" id="f-price" placeholder="Цена">
     <input type="file" id="f-photo-file" accept="image/*" multiple>
-    <textarea id="f-desc" rows="6" placeholder="Описание товара..."></textarea>
-    <button id="save-btn" onclick="submitData()" style="width:100%; background:var(--tg-link); color:white; padding:18px; border:none; border-radius:14px; font-weight:bold; font-size:16px;">СОХРАНИТЬ</button>
-    <button onclick="closeForm()" style="width:100%; margin-top:10px; background:none; border:none; color:var(--tg-hint); padding:10px;">Отмена</button>
+    <textarea id="f-desc" rows="6" placeholder="Описание..."></textarea>
+    <button id="save-btn" onclick="submitData()" style="width:100%; background:var(--tg-link); color:white; padding:16px; border:none; border-radius:12px; font-weight:bold;">ОПУБЛИКОВАТЬ</button>
+    <button onclick="closeForm()" style="width:100%; background:none; border:none; color:var(--tg-hint); margin-top:10px;">Отмена</button>
 </div>
 
 <div class="tab-bar">
@@ -93,18 +102,17 @@
 const tg = window.Telegram.WebApp;
 tg.ready(); tg.expand();
 
-// === НАСТРОЙКИ ===
+// === ТВОИ НАСТРОЙКИ ===
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxb6uemPybCCos6GM4EloLb36Vy2FjUQgNroBLJMNaERXuB2kCEEvoMzvZYMTvFcqVuZw/exec'; 
 const IMGBB_API_KEY = 'bf9f77e41562609d9306b3e2540a0488'; 
 const ADMIN_USERNAME = 'Arsenal_Oruzheyniy_Magazin_EKB'; 
-const ADMIN_IDS = [461880012, 5033819205]; // Твой ID
+const ADMIN_IDS = [461880012, 5033819205]; 
 
 let isAdmin = tg.initDataUnsafe.user && ADMIN_IDS.includes(Number(tg.initDataUnsafe.user.id));
 let isEditing = false, oldName = '', currentPhotoUrl = '';
 
 if(isAdmin) document.getElementById('admin-btn').style.display = 'block';
 
-// Функция перехода в чат
 function askQuestion() {
     tg.openTelegramLink(`https://t.me/${ADMIN_USERNAME}`);
 }
@@ -114,11 +122,11 @@ async function loadData() {
         const res = await fetch(WEB_APP_URL + "?t=" + Date.now());
         const rows = await res.json();
         const containers = {'новости':'feed-list','порох':'powder-list','патроны':'ammo-list','оружие':'guns-list','комиссионка':'comm-list'};
-        
         Object.values(containers).forEach(id => document.getElementById(id).innerHTML = '');
         
         rows.reverse().forEach(r => {
-            const [cat, name, price, photo, desc] = r;
+            const [cat, name, price, photo, desc, date] = r;
+            
             let photoHtml = '';
             if(photo) {
                 const photos = photo.split(',');
@@ -128,6 +136,13 @@ async function loadData() {
                     </div>
                     <div class="dots">${photos.map((_,i)=>`<div class="dot ${i===0?'active':''}"></div>`).join('')}</div>
                 </div>`;
+            }
+
+            // Форматирование даты
+            let dString = '';
+            if(date) {
+                const d = new Date(date);
+                dString = d.toLocaleDateString('ru-RU', {day:'numeric', month:'long', hour:'2-digit', minute:'2-digit'});
             }
 
             const adminTools = isAdmin ? `
@@ -143,7 +158,7 @@ async function loadData() {
                         <span class="item-price">${price} ₽</span>
                         <span class="item-title">${name}</span>
                         <p class="item-desc">${desc || ''}</p>
-                        <button class="btn-contact" onclick="askQuestion()">💬 Уточнить наличие / Заказать</button>
+                        <span class="item-date">📅 ${dString}</span>
                         ${adminTools}
                     </div>
                 </div>`;
@@ -151,7 +166,7 @@ async function loadData() {
             const key = cat ? cat.toLowerCase() : 'новости';
             if(containers[key]) document.getElementById(containers[key]).innerHTML += card;
         });
-    } catch(e) { console.log("Ошибка загрузки"); }
+    } catch(e) { console.log("Ошибка загрузки данных"); }
 }
 
 function updateDots(el) {
@@ -165,21 +180,6 @@ function showPage(id, el) {
     document.getElementById(id).classList.add('active');
     document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
-    window.scrollTo(0,0);
-}
-
-function openAddForm() {
-    isEditing = false;
-    document.getElementById('post-form').style.display = 'block';
-}
-
-function openEditForm(cat, name, price, photo, desc) {
-    isEditing = true; oldName = name; currentPhotoUrl = photo;
-    document.getElementById('f-cat').value = cat;
-    document.getElementById('f-name').value = name;
-    document.getElementById('f-price').value = price;
-    document.getElementById('f-desc').value = desc;
-    document.getElementById('post-form').style.display = 'block';
 }
 
 async function submitData() {
@@ -209,17 +209,24 @@ async function submitData() {
     };
 
     await fetch(WEB_APP_URL, {method:'POST', mode:'no-cors', body:JSON.stringify(data)});
-    tg.HapticFeedback.notificationOccurred('success');
     location.reload();
 }
 
-async function deletePost(name) {
+function deletePost(name) {
     if(confirm('Удалить товар?')) {
-        await fetch(WEB_APP_URL, {method:'POST', mode:'no-cors', body:JSON.stringify({action:'delete', name: name})});
-        location.reload();
+        fetch(WEB_APP_URL, {method:'POST', mode:'no-cors', body:JSON.stringify({action:'delete', name: name})}).then(()=>location.reload());
     }
 }
 
+function openAddForm() { isEditing = false; document.getElementById('post-form').style.display = 'block'; }
+function openEditForm(cat, name, price, photo, desc) {
+    isEditing = true; oldName = name; currentPhotoUrl = photo;
+    document.getElementById('f-cat').value = cat;
+    document.getElementById('f-name').value = name;
+    document.getElementById('f-price').value = price;
+    document.getElementById('f-desc').value = desc;
+    document.getElementById('post-form').style.display = 'block';
+}
 function closeForm() { document.getElementById('post-form').style.display = 'none'; }
 
 loadData();
