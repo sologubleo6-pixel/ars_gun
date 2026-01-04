@@ -6,63 +6,81 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { 
-            --tg-bg: var(--tg-theme-bg-color, #f6f8ff); 
+            --tg-bg: var(--tg-theme-bg-color, #f0f2f5); 
             --tg-text: var(--tg-theme-text-color, #000); 
             --tg-link: var(--tg-theme-link-color, #248bed); 
             --tg-secondary-bg: var(--tg-theme-secondary-bg-color, #ffffff); 
             --tg-hint: var(--tg-theme-hint-color, #888);
         }
-        body { font-family: sans-serif; background: var(--tg-bg); color: var(--tg-text); margin: 0; padding-bottom: 80px; }
-        .page { display: none; padding: 15px; }
-        .page.active { display: block; }
-        .item-card { background: var(--tg-secondary-bg); border-radius: 15px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .item-card img { width: 100%; max-height: 350px; object-fit: cover; display: block; background: #eee; }
-        .item-info { padding: 15px; }
-        .item-price { background: var(--tg-link); color: white; padding: 5px 12px; border-radius: 7px; font-weight: bold; display: inline-block; margin-bottom: 8px; }
-        .item-title { font-size: 18px; font-weight: bold; display: block; margin-bottom: 5px; }
-        .item-desc { font-size: 14px; white-space: pre-wrap; line-height: 1.4; }
-        .item-date { font-size: 11px; color: var(--tg-hint); margin-top: 10px; text-align: right; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--tg-bg); color: var(--tg-text); margin: 0; padding-bottom: 90px; }
         
-        .admin-controls { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px; }
-        .btn-edit { background: var(--tg-link); color: white; border: none; padding: 8px; border-radius: 8px; flex: 1; }
-        .btn-delete { background: #ff4444; color: white; border: none; padding: 8px; border-radius: 8px; flex: 1; }
+        .page { display: none; padding: 15px; animation: fadeIn 0.3s; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        #admin-btn { position: fixed; top: 15px; right: 15px; z-index: 1001; display: none; background: #ff4444; color: white; border: none; border-radius: 50%; width: 55px; height: 55px; font-size: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        /* ГАЛЕРЕЯ КАРТОЧКИ */
+        .item-card { background: var(--tg-secondary-bg); border-radius: 16px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: relative; }
+        .gallery-wrapper { position: relative; width: 100%; background: #eee; }
+        .gallery { display: flex; overflow-x: auto; snap-type: x mandatory; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+        .gallery::-webkit-scrollbar { display: none; }
+        .gallery img { width: 100%; flex-shrink: 0; snap-align: start; max-height: 380px; object-fit: cover; }
+        
+        /* ИНДИКАТОРЫ ТОЧКИ */
+        .dots { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; pointer-events: none; }
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.5); }
+        .dot.active { background: white; width: 8px; height: 8px; }
 
-        .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: var(--tg-secondary-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(0,0,0,0.1); z-index: 1000; }
-        .tab-item { text-align: center; font-size: 11px; color: var(--tg-hint); cursor: pointer; flex: 1; }
-        .tab-item.active { color: var(--tg-link); font-weight: bold; }
-        .tab-item .icon { font-size: 22px; display: block; margin-bottom: 3px; }
+        .item-info { padding: 16px; }
+        .item-price { background: var(--tg-link); color: white; padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 15px; display: inline-block; margin-bottom: 8px; }
+        .item-title { font-size: 18px; font-weight: 800; display: block; margin-bottom: 6px; }
+        .item-desc { font-size: 14px; color: var(--tg-text); opacity: 0.9; line-height: 1.5; white-space: pre-wrap; }
 
+        /* КНОПКИ АДМИНА */
+        .admin-controls { display: flex; gap: 8px; margin-top: 15px; }
+        .btn-edit { background: #e3f2fd; color: #1976d2; border: none; padding: 10px; border-radius: 10px; flex: 1; font-weight: bold; }
+        .btn-delete { background: #ffebee; color: #d32f2f; border: none; padding: 10px; border-radius: 10px; flex: 1; font-weight: bold; }
+
+        #admin-btn { position: fixed; bottom: 90px; right: 20px; z-index: 999; display: none; background: #ff4444; color: white; border: none; border-radius: 50%; width: 60px; height: 60px; font-size: 35px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+
+        /* НАВИГАЦИЯ */
+        .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 75px; background: var(--tg-secondary-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); z-index: 1000; }
+        .tab-item { text-align: center; font-size: 10px; color: var(--tg-hint); flex: 1; padding: 10px 0; }
+        .tab-item.active { color: var(--tg-link); }
+        .tab-item .icon { font-size: 24px; display: block; margin-bottom: 4px; }
+
+        /* ФОРМА */
         .form-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--tg-bg); z-index: 2000; padding: 20px; overflow-y: auto; }
-        input, textarea, select { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; box-sizing: border-box; }
+        input, textarea, select { width: 100%; padding: 14px; margin-bottom: 15px; border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; font-size: 16px; box-sizing: border-box; background: var(--tg-secondary-bg); color: var(--tg-text); }
+        
+        .support-btn { background: #28a745; color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; margin: 20px 0; font-weight: bold; font-size: 16px; }
     </style>
 </head>
 <body>
 
 <button id="admin-btn" onclick="openAddForm()">+</button>
 
-<div id="feed" class="page active"><h2>🔥 Лента</h2><div id="feed-list"></div></div>
+<div id="feed" class="page active"><h2>🔥 Новинки</h2><div id="feed-list"></div><button class="support-btn" onclick="askQuestion()">💬 Задать вопрос админу</button></div>
 <div id="powder" class="page"><h2>🧪 Порох</h2><div id="powder-list"></div></div>
 <div id="ammo" class="page"><h2>🔫 Патроны</h2><div id="ammo-list"></div></div>
 <div id="guns" class="page"><h2>🧰 Оружие</h2><div id="guns-list"></div></div>
 <div id="commission" class="page"><h2>♻️ Комиссионка</h2><div id="comm-list"></div></div>
 
 <div id="post-form" class="form-overlay">
-    <h3 id="form-title">Новый пост</h3>
+    <h3 id="form-title">Добавить товар</h3>
     <select id="f-cat">
-        <option value="Новости">Новости</option>
+        <option value="Новости">Лента</option>
         <option value="Порох">Порох</option>
         <option value="Патроны">Патроны</option>
         <option value="Оружие">Оружие</option>
         <option value="Комиссионка">Комиссионка</option>
     </select>
-    <input type="text" id="f-name" placeholder="Название">
-    <input type="text" id="f-price" placeholder="Цена">
-    <input type="file" id="f-photo-file" accept="image/*">
-    <textarea id="f-desc" rows="5" placeholder="Описание"></textarea>
-    <button id="save-btn" onclick="submitData()" style="width:100%; background:var(--tg-link); color:white; padding:16px; border:none; border-radius:12px; font-weight:bold;">ОПУБЛИКОВАТЬ</button>
-    <button onclick="closeForm()" style="width:100%; margin-top:10px; background:none; border:none; color:var(--tg-hint);">Отмена</button>
+    <input type="text" id="f-name" placeholder="Название товара">
+    <input type="text" id="f-price" placeholder="Цена (только цифры)">
+    <p style="font-size: 12px; color: var(--tg-hint); margin-top:-10px">Можно выбрать несколько фото:</p>
+    <input type="file" id="f-photo-file" accept="image/*" multiple>
+    <textarea id="f-desc" rows="6" placeholder="Описание, характеристики..."></textarea>
+    <button id="save-btn" onclick="submitData()" style="width:100%; background:var(--tg-link); color:white; padding:18px; border:none; border-radius:14px; font-weight:bold; font-size:16px;">ОПУБЛИКОВАТЬ</button>
+    <button onclick="closeForm()" style="width:100%; margin-top:10px; background:none; border:none; color:var(--tg-hint); padding:10px;">Отмена</button>
 </div>
 
 <div class="tab-bar">
@@ -70,74 +88,72 @@
     <div class="tab-item" onclick="showPage('powder',this)"><span class="icon">🧪</span>Порох</div>
     <div class="tab-item" onclick="showPage('ammo',this)"><span class="icon">🔫</span>Патроны</div>
     <div class="tab-item" onclick="showPage('guns',this)"><span class="icon">🧰</span>Оружие</div>
-    <div class="tab-item" onclick="showPage('commission',this)"><span class="icon">♻️</span>Комисс.</div>
+    <div class="tab-item" onclick="showPage('commission',this)"><span class="icon">♻️</span>Б/У</div>
 </div>
 
 <script>
 const tg = window.Telegram.WebApp;
-tg.ready();
-tg.expand();
+tg.ready(); tg.expand();
 
-// === НАСТРОЙКИ (ЗАПОЛНИ ИХ) ===
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzAjr_MD7NLeCM9-ZBF6e_hhqHmdVbcZAosGms4ghK4U6pk5Is7LmSC3ZLUnHIO0aj58w/exec'; 
+// === ТВОИ ДАННЫЕ ===
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbx7fDkvV7Bfi_0-pmyslQdjEpH2JWvDyujR1OYe_f9y3CgjTQHCOV1xDwCmuth8XegKhA/exec'; 
 const IMGBB_API_KEY = 'bf9f77e41562609d9306b3e2540a0488'; 
-const ADMIN_IDS = [461880012,5033819205]; 
+const ADMIN_IDS = [461880012,5033819205]; // Твой ID и ID помощников
 
 let isAdmin=false, isEditing=false, oldName='', currentPhotoUrl='';
 
-// Проверка админа
 if(tg.initDataUnsafe.user && ADMIN_IDS.includes(Number(tg.initDataUnsafe.user.id))){
     isAdmin = true;
     document.getElementById('admin-btn').style.display='block';
 }
 
-// АВТОРЕГИСТРАЦИЯ ПОЛЬЗОВАТЕЛЯ ПРИ ВХОДЕ
+// Регистрация в Users
 if (tg.initDataUnsafe.user) {
-    fetch(WEB_APP_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify({
-            action: 'register',
-            chatId: tg.initDataUnsafe.user.id
-        })
-    });
+    fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'register', chatId: tg.initDataUnsafe.user.id })});
 }
 
 async function loadData(){
-    try {
-        const res = await fetch(WEB_APP_URL + "?action=read&t=" + Date.now());
-        const rows = await res.json();
-        const containers = {'новости':'feed-list','порох':'powder-list','патроны':'ammo-list','оружие':'guns-list','комиссионка':'comm-list'};
-        Object.values(containers).forEach(id=>document.getElementById(id).innerHTML='');
-        
-        rows.forEach(r=>{
-            const [cat,name,price,photo,desc,date] = r;
-            let adminBlock='';
-            if(isAdmin){
-                const sName = name.replace(/'/g,"\\'");
-                const sDesc = desc ? desc.replace(/'/g,"\\'") : "";
-                adminBlock=`<div class="admin-controls">
-                    <button class="btn-edit" onclick="openEditForm('${cat}','${sName}','${price}','${photo}','${sDesc}')">Редактировать</button>
-                    <button class="btn-delete" onclick="deletePost('${sName}')">Удалить</button>
-                </div>`;
-            }
-            const card=`<div class="item-card">
-                ${photo ? `<img src="${photo}" loading="lazy">` : ''}
-                <div class="item-info">
-                    ${price ? `<span class="item-price">${price} ₽</span>` : ''}
-                    <span class="item-title">${name}</span>
-                    <p class="item-desc">${desc || ''}</p>
-                    <div class="item-date">${new Date(date).toLocaleString()}</div>
-                    ${adminBlock}
+    const res = await fetch(WEB_APP_URL + "?action=read&t=" + Date.now());
+    const rows = await res.json();
+    const containers = {'новости':'feed-list','порох':'powder-list','патроны':'ammo-list','оружие':'guns-list','комиссионка':'comm-list'};
+    Object.values(containers).forEach(id=>document.getElementById(id).innerHTML='');
+    
+    rows.reverse().forEach(r=>{
+        const [cat,name,price,photo,desc,date] = r;
+        let photoHtml = '';
+        if(photo) {
+            const photos = photo.split(',');
+            photoHtml = `<div class="gallery-wrapper">
+                <div class="gallery" onscroll="updateDots(this)">
+                    ${photos.map(p => `<img src="${p.trim()}" onclick="tg.showPhoto('${p.trim()}')">`).join('')}
                 </div>
+                <div class="dots">${photos.map((_,i)=>`<div class="dot ${i===0?'active':''}"></div>`).join('')}</div>
             </div>`;
-            const key = cat ? cat.toLowerCase() : '';
-            if(containers[key]) document.getElementById(containers[key]).innerHTML+=card;
-        });
+        }
 
-        // Скролл вниз к новинкам
-        setTimeout(() => window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'}), 500);
-    } catch(e) { console.error("Ошибка загрузки:", e); }
+        let adminBlock = isAdmin ? `<div class="admin-controls">
+            <button class="btn-edit" onclick="openEditForm('${cat}','${name.replace(/'/g,"\\'")}','${price}','${photo}','${desc?desc.replace(/'/g,"\\'"):""}')">Изменить</button>
+            <button class="btn-delete" onclick="deletePost('${name.replace(/'/g,"\\'")} ')">Удалить</button>
+        </div>` : '';
+
+        const card = `<div class="item-card">${photoHtml}<div class="item-info">
+            <span class="item-price">${price} ₽</span>
+            <span class="item-title">${name}</span>
+            <p class="item-desc">${desc || ''}</p>
+            ${adminBlock}
+        </div></div>`;
+        
+        const key = cat.toLowerCase();
+        if(containers[key]) document.getElementById(containers[key]).innerHTML += card;
+    });
+}
+
+function updateDots(el) {
+    const scrollLeft = el.scrollLeft;
+    const width = el.offsetWidth;
+    const index = Math.round(scrollLeft / width);
+    const dots = el.parentElement.querySelectorAll('.dot');
+    dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
 }
 
 function showPage(id,el){
@@ -145,18 +161,19 @@ function showPage(id,el){
     document.getElementById(id).classList.add('active');
     document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
     el.classList.add('active');
-    window.scrollTo(0, document.body.scrollHeight);
+    window.scrollTo(0,0);
 }
 
 function openAddForm(){
     isEditing=false; currentPhotoUrl='';
-    document.getElementById('form-title').innerText = "Новый товар";
+    document.getElementById('f-name').value='';
+    document.getElementById('f-price').value='';
+    document.getElementById('f-desc').value='';
     document.getElementById('post-form').style.display='block';
 }
 
 function openEditForm(cat,name,price,photo,desc){
     isEditing=true; oldName=name; currentPhotoUrl=photo;
-    document.getElementById('form-title').innerText = "Редактирование";
     document.getElementById('f-cat').value=cat;
     document.getElementById('f-name').value=name;
     document.getElementById('f-price').value=price;
@@ -164,43 +181,55 @@ function openEditForm(cat,name,price,photo,desc){
     document.getElementById('post-form').style.display='block';
 }
 
-function closeForm(){ document.getElementById('post-form').style.display='none'; }
-
 async function submitData(){
     const btn = document.getElementById('save-btn');
-    btn.disabled = true; btn.innerText = "ЗАГРУЗКА...";
+    btn.disabled = true; btn.innerText = "ЗАГРУЖАЕМ ФОТО...";
+    
+    const files = document.getElementById('f-photo-file').files;
+    let urls = isEditing ? currentPhotoUrl.split(',').filter(x=>x) : [];
 
-    const file = document.getElementById('f-photo-file').files[0];
-    let photoUrl = currentPhotoUrl;
-
-    if(file){
-        const formData = new FormData();
-        formData.append("image", file);
-        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: "POST", body: formData });
-        const json = await res.json();
-        photoUrl = json.data.url;
+    for(let file of files){
+        const fd = new FormData(); fd.append("image", file);
+        try {
+            const r = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {method:"POST", body:fd});
+            const j = await r.json();
+            urls.push(j.data.url);
+        } catch(e) { console.error("ImgBB error"); }
     }
 
-    const data={
+    const data = {
         action: isEditing ? 'edit' : 'add',
         oldName,
         category: document.getElementById('f-cat').value,
         name: document.getElementById('f-name').value,
         price: document.getElementById('f-price').value,
         desc: document.getElementById('f-desc').value,
-        photo: photoUrl
+        photo: urls.join(',')
     };
 
-    await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
+    await fetch(WEB_APP_URL, {method:'POST', mode:'no-cors', body:JSON.stringify(data)});
+    tg.HapticFeedback.notificationOccurred('success');
     location.reload();
 }
 
 async function deletePost(name){
-    if(!confirm(`Удалить "${name}"?`)) return;
-    await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({action:'delete', name}) });
-    location.reload();
+    if(confirm('Удалить товар навсегда?')) {
+        await fetch(WEB_APP_URL, {method:'POST', mode:'no-cors', body:JSON.stringify({action:'delete', name})});
+        location.reload();
+    }
 }
 
+function askQuestion(){
+    const q = prompt("Ваш вопрос админу (укажите как с вами связаться):");
+    if(q) {
+        fetch(WEB_APP_URL, {method:'POST', mode:'no-cors', body:JSON.stringify({
+            action:'ask_question', text: q, userId: tg.initDataUnsafe.user.id
+        })});
+        alert("Отправлено! Админ скоро ответит.");
+    }
+}
+
+function closeForm(){ document.getElementById('post-form').style.display='none'; }
 loadData();
 </script>
 </body>
