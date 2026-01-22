@@ -40,7 +40,6 @@
         .btn-edit { background: #e3f2fd; color: #1976d2; border: none; padding: 10px; border-radius: 10px; flex: 1; font-weight: bold; }
         .btn-delete { background: #ffebee; color: #d32f2f; border: none; padding: 10px; border-radius: 10px; flex: 1; font-weight: bold; }
 
-        /* ПЛАВАЮЩИЕ КНОПКИ АДМИНА */
         #admin-btn { position: fixed; bottom: 150px; right: 20px; z-index: 999; display: none; background: #ff4444; color: white; border: none; border-radius: 50%; width: 56px; height: 56px; font-size: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         #broadcast-btn { position: fixed; bottom: 150px; left: 20px; z-index: 999; display: none; background: #248bed; color: white; border: none; border-radius: 50%; width: 56px; height: 56px; font-size: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
 
@@ -48,11 +47,10 @@
         .support-btn { background: #28a745; color: white; border: none; padding: 14px; border-radius: 14px; width: 100%; font-weight: bold; font-size: 16px; }
 
         .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 75px; background: var(--tg-secondary-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid rgba(0,0,0,0.05); z-index: 1000; }
-        .tab-item { text-align: center; font-size: 10px; color: var(--tg-hint); flex: 1; }
+        .tab-item { text-align: center; font-size: 10px; color: var(--tg-hint); flex: 1; cursor: pointer; }
         .tab-item.active { color: var(--tg-link); font-weight: bold; }
         .tab-item .icon { font-size: 22px; display: block; margin-bottom: 4px; }
 
-        /* ФОРМЫ */
         .form-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--tg-bg); z-index: 2000; padding: 20px; overflow-y: auto; }
         input, textarea, select { width: 100%; padding: 14px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #ddd; background: var(--tg-secondary-bg); color: var(--tg-text); font-size: 16px; box-sizing: border-box; }
     </style>
@@ -91,7 +89,6 @@
 
 <div id="broadcast-form" class="form-overlay">
     <h3>📢 Рассылка всем клиентам</h3>
-    <p style="font-size: 12px; color: var(--tg-hint);">Ваше сообщение придет в личку всем пользователям из базы.</p>
     <textarea id="b-text" rows="10" placeholder="Введите текст сообщения..."></textarea>
     <button id="send-all-btn" onclick="sendBroadcast()" style="width:100%; background:#28a745; color:white; padding:16px; border:none; border-radius:12px; font-weight:bold;">ОТПРАВИТЬ СЕЙЧАС</button>
     <button onclick="closeBroadcastForm()" style="width:100%; background:none; border:none; color:var(--tg-hint); margin-top:10px;">Отмена</button>
@@ -109,7 +106,6 @@
 const tg = window.Telegram.WebApp;
 tg.ready(); tg.expand();
 
-// === НАСТРОЙКИ (ЗАПОЛНИ ИХ) ===
 const WEB_APP_URL = 'https://mandatory-superb-wrap-stopped.trycloudflare.com/api/products'; 
 const IMGBB_API_KEY = 'bf9f77e41562609d9306b3e2540a0488'; 
 const ADMIN_USERNAME = 'Arsenal_Oruzheyniy_Magazin_EKB'; 
@@ -123,16 +119,17 @@ if(isAdmin) {
     document.getElementById('broadcast-btn').style.display = 'block';
 }
 
-// Авто-регистрация в базе Users
+// Регистрация юзера
 if (tg.initDataUnsafe.user) {
     fetch(WEB_APP_URL, {
-        method:'POST', 
+        method:'POST',
+        headers: {'Content-Type': 'application/json'},
         body:JSON.stringify({
             action:'register', 
             userId: tg.initDataUnsafe.user.id, 
             username: tg.initDataUnsafe.user.username || 'User'
         })
-    });
+    }).catch(e => console.log('Reg error:', e));
 }
 
 function askQuestion() { tg.openTelegramLink(`https://t.me/${ADMIN_USERNAME}`); }
@@ -142,8 +139,13 @@ async function loadData() {
         const res = await fetch(WEB_APP_URL + "?t=" + Date.now());
         const rows = await res.json();
         const containers = {'новости':'feed-list','порох':'powder-list','патроны':'ammo-list','оружие':'guns-list','комиссионка':'comm-list'};
-        Object.values(containers).forEach(id => document.getElementById(id).innerHTML = '');
         
+        Object.values(containers).forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.innerHTML = '';
+        });
+        
+        // РАЗВОРАЧИВАЕМ: новые будут вверху
         rows.reverse().forEach(r => {
             const [cat, name, price, photo, desc, date] = r;
             let photoHtml = '';
@@ -154,6 +156,7 @@ async function loadData() {
                 </div><div class="dots">${photos.map((_,i)=>`<div class="dot ${i===0?'active':''}"></div>`).join('')}</div></div>`;
             }
             let dStr = date ? new Date(date).toLocaleDateString('ru-RU', {day:'numeric', month:'long', hour:'2-digit', minute:'2-digit'}) : '';
+            
             const adminTools = isAdmin ? `<div class="admin-controls">
                 <button class="btn-edit" onclick="openEditForm('${cat}','${name.replace(/'/g,"\\'")}','${price}','${photo}','${(desc||"").replace(/'/g,"\\'").replace(/\n/g," ")}')">Изменить</button>
                 <button class="btn-delete" onclick="deletePost('${name.replace(/'/g,"\\'")}')">Удалить</button>
@@ -167,7 +170,7 @@ async function loadData() {
             const key = (cat || "Новости").toLowerCase();
             if(containers[key]) document.getElementById(containers[key]).innerHTML += card;
         });
-    } catch(e) {}
+    } catch(e) { console.error('Load error:', e); }
 }
 
 function updateDots(el) {
@@ -182,7 +185,6 @@ function showPage(id, el) {
     el.classList.add('active'); window.scrollTo(0,0);
 }
 
-// Функции для товара
 function openAddForm() { isEditing = false; document.getElementById('post-form').style.display = 'block'; }
 function openEditForm(cat, name, price, photo, desc) {
     isEditing = true; oldName = name; currentPhotoUrl = photo;
@@ -216,35 +218,44 @@ async function submitData() {
         photo: urls.join(',')
     };
 
-    await fetch(WEB_APP_URL, {method:'POST', mode:'no-cors', body:JSON.stringify(data)});
-    location.reload();
+    try {
+        await fetch(WEB_APP_URL, {
+            method:'POST', 
+            headers: {'Content-Type': 'application/json'},
+            body:JSON.stringify(data)
+        });
+        location.reload();
+    } catch(e) { alert('Ошибка при сохранении'); btn.disabled = false; }
 }
 
 function deletePost(name) {
     if(confirm('Удалить товар?')) {
-        fetch(WEB_APP_URL, {method:'POST', mode:'no-cors', body:JSON.stringify({action:'delete', title: name})}).then(()=>location.reload());
+        fetch(WEB_APP_URL, {
+            method:'POST', 
+            headers: {'Content-Type': 'application/json'},
+            body:JSON.stringify({action:'delete', title: name})
+        }).then(()=>location.reload());
     }
 }
 
-// ФУНКЦИИ РАССЫЛКИ
 function openBroadcastForm() { document.getElementById('broadcast-form').style.display = 'block'; }
 function closeBroadcastForm() { document.getElementById('broadcast-form').style.display = 'none'; }
 
 async function sendBroadcast() {
     const text = document.getElementById('b-text').value;
     if(!text) return alert('Введите текст!');
-    
     const btn = document.getElementById('send-all-btn');
     btn.disabled = true; btn.innerText = "ОТПРАВЛЯЮ...";
     
-    await fetch(WEB_APP_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify({ action: 'broadcast', text: text })
-    });
-    
-    alert('Рассылка запущена!');
-    closeBroadcastForm();
+    try {
+        await fetch(WEB_APP_URL, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ action: 'broadcast', text: text })
+        });
+        alert('Рассылка запущена!');
+        closeBroadcastForm();
+    } catch(e) { alert('Ошибка рассылки'); }
     btn.disabled = false; btn.innerText = "ОТПРАВИТЬ СЕЙЧАС";
 }
 
@@ -252,14 +263,3 @@ loadData();
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
